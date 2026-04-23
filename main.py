@@ -10,8 +10,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import uvicorn
 
-from regime_platform_v2.routers import regime, sizing, risk, pipeline
-from regime_platform_v2.routers import stream_rest, stream_ws
+from regime_platform.routers import regime, sizing, risk, pipeline
+from regime_platform.routers import stream_rest, stream_ws
 
 
 def create_app() -> FastAPI:
@@ -76,4 +76,4 @@ Each symbol has a **StreamSession**:
 app = create_app()
 
 if __name__ == "__main__":
-    uvicorn.run("main_v2:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
