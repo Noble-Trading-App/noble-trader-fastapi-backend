@@ -7,7 +7,7 @@ A production-grade FastAPI web service for quantitative trading risk management.
 ## Architecture
 
 ```
-regime_platform/
+/
 ├── core/
 │   ├── regime_engine.py     # Dual GaussianHMM (vol + trend)
 │   ├── position_sizer.py    # Fractional Kelly + vol-scaling + regime gating
