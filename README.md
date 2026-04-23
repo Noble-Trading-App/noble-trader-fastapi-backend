@@ -25,8 +25,8 @@ regime_platform/
 └── services/
     ├── stream_session.py     # Per-symbol stateful streaming engine
     └── registry.py           # Singleton session store
-main.py                       # v1 batch-only app factory
-main_v2.py                    # v2 app factory (batch + streaming)
+main_v1.py                       # v1 batch-only app factory
+main.py                       # v2 app factory (batch + streaming)
 requirements.txt
 test_platform.py              # Batch pipeline smoke test
 test_streaming.py             # Streaming layer smoke test
@@ -57,7 +57,7 @@ test_streaming.py             # Streaming layer smoke test
 pip install -r requirements.txt
 
 # Run (v2 — batch + streaming)
-uvicorn main_v2:app --reload --port 8000
+uvicorn main:app --reload --port 8000
 
 # Interactive docs
 open http://localhost:8000/docs
