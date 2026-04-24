@@ -1,0 +1,684 @@
+openapi: "3.1.0"
+
+info:
+  title: Dynamic Regime Risk Management Platform
+  version: "2.0.0"
+  description: |
+    A production-grade FastAPI service for quantitative trading risk management.
+    Detects market regimes with Hidden Markov Models, gates position sizes via
+    the Kelly Criterion, computes real-time VaR/CVaR, and streams live regime
+    snapshots and alerts over WebSocket and SSE.
+  contact:
+    name: Regime Risk Platform
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:8000
+    description: Local development
+
+tags:
+  - name: Full Pipeline
+    description: One-shot batch analysis
+  - name: Regime Detection
+    description: HMM-based regime classification
+  - name: Position Sizing
+    description: Kelly Criterion position sizing
+  - name: Risk Analysis
+    description: VaR, CVaR, drawdown, stop/TP
+  - name: Live Stream
+    description: REST tick ingestion and session management
+  - name: Real-Time Streaming
+    description: WebSocket and Server-Sent Events
+  - name: Health
+
+# ─────────────────────────────────────────────────────────────────────────────
+paths:
+
+  /health:
+    get:
+      tags: [Health]
+      summary: Health check
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: ok }
+                  version: { type: string, example: "2.0.0" }
+
+  # ── BATCH ────────────────────────────────────────────────────────────────
+
+  /analyse/full:
+    post:
+      tags: [Full Pipeline]
+      summary: One-shot full pipeline — regime + sizing + risk
+      description: |
+        Runs the complete pipeline in a single request:
+        1. Fit dual Gaussian HMMs → regime posteriors + risk_multiplier
+        2. Fractional Kelly → vol-scaled → regime-gated position size
+        3. Historical VaR/CVaR, drawdown, stop/TP suggestions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/FullAnalysisRequest' }
+            example:
+              symbol: SPY
+              prices: [450.1, 451.3, 449.8, 452.0]
+              kelly_fraction: 0.5
+              target_vol: 0.15
+              base_risk_limit: 0.02
+      responses:
+        "200":
+          description: Full analysis result
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FullAnalysisResponse' }
+        "422":
+          $ref: '#/components/responses/ValidationError'
+
+  /regime/detect:
+    post:
+      tags: [Regime Detection]
+      summary: Detect market regime from price series
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PricePayload' }
+      responses:
+        "200":
+          description: Regime classification result
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RegimeResponse' }
+        "422":
+          $ref: '#/components/responses/ValidationError'
+
+  /size/kelly:
+    post:
+      tags: [Position Sizing]
+      summary: Regime-aware fractional Kelly position sizing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SizeRequest' }
+      responses:
+        "200":
+          description: Kelly sizing result
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SizeResponse' }
+        "422":
+          $ref: '#/components/responses/ValidationError'
+
+  /risk/analyse:
+    post:
+      tags: [Risk Analysis]
+      summary: Full risk decomposition — VaR, CVaR, drawdown, stop/TP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RiskRequest' }
+      responses:
+        "200":
+          description: Risk analysis result
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RiskResponse' }
+        "422":
+          $ref: '#/components/responses/ValidationError'
+
+  # ── STREAMING REST ────────────────────────────────────────────────────────
+
+  /stream/seed:
+    post:
+      tags: [Live Stream]
+      summary: Seed a symbol streaming session with historical prices
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SeedRequest' }
+      responses:
+        "200":
+          description: Session created and seeded
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SessionStatus' }
+        "422":
+          $ref: '#/components/responses/ValidationError'
+
+  /stream/tick:
+    post:
+      tags: [Live Stream]
+      summary: Push one price tick — receive regime snapshot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TickIngest' }
+      responses:
+        "200":
+          description: Tick snapshot or buffering stub
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/TickResponse'
+                  - $ref: '#/components/schemas/BufferingStub'
+        "404":
+          $ref: '#/components/responses/NotFound'
+
+  /stream/ticks:
+    post:
+      tags: [Live Stream]
+      summary: Batch tick ingestion / backtest replay
+      parameters:
+        - name: symbol
+          in: query
+          required: true
+          schema: { type: string }
+        - name: prices
+          in: query
+          required: true
+          schema: { type: array, items: { type: number } }
+        - name: timestamps
+          in: query
+          required: false
+          schema: { type: array, items: { type: number } }
+      responses:
+        "200":
+          description: Array of tick snapshots
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  oneOf:
+                    - $ref: '#/components/schemas/TickResponse'
+                    - $ref: '#/components/schemas/BufferingStub'
+        "404":
+          $ref: '#/components/responses/NotFound'
+
+  /stream/sessions:
+    get:
+      tags: [Live Stream]
+      summary: List all active streaming sessions and their stats
+      responses:
+        "200":
+          description: Map of symbol → session stats
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  $ref: '#/components/schemas/SessionStats'
+
+  /stream/session/{symbol}:
+    get:
+      tags: [Live Stream]
+      summary: Get status of a single streaming session
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SessionStatus' }
+        "404":
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Live Stream]
+      summary: Remove a streaming session
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Session removed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: removed }
+                  symbol: { type: string }
+
+  # ── SSE ───────────────────────────────────────────────────────────────────
+
+  /sse/{symbol}:
+    get:
+      tags: [Real-Time Streaming]
+      summary: SSE stream — per-symbol regime snapshots
+      description: |
+        Server-Sent Events stream. Pushes a TickResponse JSON on every tick
+        processed for `symbol`. Requires a seeded session. Sends comment
+        heartbeats every 15 seconds of inactivity.
+
+        Connect with: `new EventSource('/sse/SPY')`
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: SSE event stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                description: |
+                  Each `data:` line is a JSON-serialised TickResponse.
+                  First event: `{"type": "connected", "symbol": "SPY"}`
+        "404":
+          $ref: '#/components/responses/NotFound'
+
+  /sse/alerts:
+    get:
+      tags: [Real-Time Streaming]
+      summary: SSE stream — global regime-change alert broadcast
+      description: |
+        Broadcasts RegimeAlert events across all active symbol sessions.
+        Only fires on transitions that persist for 3+ bars (debounced).
+
+        Connect with: `new EventSource('/sse/alerts')`
+      responses:
+        "200":
+          description: SSE alert stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                description: |
+                  Each `data:` line is a JSON-serialised RegimeAlert.
+                  First event: `{"type": "connected", "scope": "alerts"}`
+
+# ─────────────────────────────────────────────────────────────────────────────
+components:
+
+  responses:
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                oneOf:
+                  - type: string
+                  - type: array
+                    items:
+                      type: object
+                      properties:
+                        loc:  { type: array }
+                        msg:  { type: string }
+                        type: { type: string }
+
+    NotFound:
+      description: Session not found for symbol
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail: { type: string }
+
+  schemas:
+
+    # ── Shared ─────────────────────────────────────────────────────────────
+
+    PricePayload:
+      type: object
+      required: [prices]
+      properties:
+        symbol:
+          type: string
+          default: UNKNOWN
+          description: Ticker label
+        prices:
+          type: array
+          items: { type: number, exclusiveMinimum: 0 }
+          minItems: 81
+          description: Ordered close price series. All values must be positive.
+
+    # ── Batch requests ──────────────────────────────────────────────────────
+
+    FullAnalysisRequest:
+      allOf:
+        - $ref: '#/components/schemas/PricePayload'
+        - type: object
+          properties:
+            kelly_fraction:
+              type: number
+              minimum: 0.1
+              maximum: 1.0
+              default: 0.5
+            target_vol:
+              type: number
+              exclusiveMinimum: 0
+              maximum: 1.0
+              default: 0.15
+            base_risk_limit:
+              type: number
+              exclusiveMinimum: 0
+              maximum: 0.5
+              default: 0.02
+
+    SizeRequest:
+      allOf:
+        - $ref: '#/components/schemas/PricePayload'
+        - type: object
+          properties:
+            returns:
+              type: array
+              items: { type: number }
+              nullable: true
+              description: Explicit return series; overrides prices-derived returns.
+            kelly_fraction:
+              type: number
+              minimum: 0.1
+              maximum: 1.0
+              default: 0.5
+            target_vol:
+              type: number
+              exclusiveMinimum: 0
+              maximum: 1.0
+              default: 0.15
+            use_regime:
+              type: boolean
+              default: true
+
+    RiskRequest:
+      allOf:
+        - $ref: '#/components/schemas/SizeRequest'
+        - type: object
+          properties:
+            base_risk_limit:
+              type: number
+              exclusiveMinimum: 0
+              maximum: 0.5
+              default: 0.02
+
+    # ── Batch responses ─────────────────────────────────────────────────────
+
+    RegimeResponse:
+      type: object
+      properties:
+        symbol:          { type: string }
+        vol_probs:
+          type: object
+          properties:
+            low:    { type: number }
+            medium: { type: number }
+            high:   { type: number }
+        trend_probs:
+          type: object
+          properties:
+            bear:    { type: number }
+            neutral: { type: number }
+            bull:    { type: number }
+        vol_state:       { type: string, enum: [low, med_low, med_high, high] }
+        trend_state:     { type: string, enum: [strong_bear, bear, bull, strong_bull] }
+        regime_label:    { type: string, example: low_vol_bull }
+        confidence:      { type: number, minimum: 0, maximum: 1 }
+        risk_multiplier: { type: number, minimum: 0.10, maximum: 1.75 }
+        n_bars_fitted:   { type: integer }
+
+    SizeResponse:
+      type: object
+      properties:
+        symbol:            { type: string }
+        full_kelly_f:      { type: number }
+        fractional_f:      { type: number }
+        vol_scaled_f:      { type: number }
+        regime_gated_f:    { type: number }
+        recommended_f:     { type: number, minimum: 0, maximum: 1 }
+        kelly_edge:        { type: number }
+        sharpe_ratio:      { type: number }
+        regime_label:      { type: string }
+        regime_multiplier: { type: number }
+        fraction_type:     { type: string, example: "50% Kelly" }
+        notes:
+          type: array
+          items: { type: string }
+
+    RiskResponse:
+      type: object
+      properties:
+        symbol:           { type: string }
+        recommended_f:    { type: number }
+        var_95:           { type: number }
+        var_99:           { type: number }
+        cvar_95:          { type: number }
+        cvar_99:          { type: number }
+        max_drawdown:     { type: number }
+        annual_vol:       { type: number }
+        annual_return:    { type: number }
+        calmar_ratio:     { type: number }
+        sortino_ratio:    { type: number }
+        regime_label:     { type: string }
+        regime_max_loss:  { type: number }
+        suggested_stop:   { type: number }
+        suggested_tp:     { type: number }
+        risk_budget_used: { type: number }
+        notes:
+          type: array
+          items: { type: string }
+
+    FullAnalysisResponse:
+      type: object
+      properties:
+        symbol:  { type: string }
+        regime:  { $ref: '#/components/schemas/RegimeResponse' }
+        sizing:  { $ref: '#/components/schemas/SizeResponse' }
+        risk:    { $ref: '#/components/schemas/RiskResponse' }
+
+    # ── Streaming requests ──────────────────────────────────────────────────
+
+    SeedRequest:
+      type: object
+      required: [symbol, prices]
+      properties:
+        symbol:           { type: string }
+        prices:
+          type: array
+          items: { type: number, exclusiveMinimum: 0 }
+          minItems: 81
+        window:
+          type: integer
+          minimum: 51
+          maximum: 5000
+          default: 500
+        kelly_fraction:
+          type: number
+          minimum: 0.1
+          maximum: 1.0
+          default: 0.5
+        target_vol:
+          type: number
+          exclusiveMinimum: 0
+          maximum: 1.0
+          default: 0.15
+        base_risk_limit:
+          type: number
+          exclusiveMinimum: 0
+          maximum: 0.5
+          default: 0.02
+        refit_every:
+          type: integer
+          minimum: 5
+          maximum: 500
+          default: 50
+
+    TickIngest:
+      type: object
+      required: [symbol, price]
+      properties:
+        symbol: { type: string }
+        price:  { type: number, exclusiveMinimum: 0 }
+        ts:     { type: number, nullable: true, description: Unix timestamp }
+
+    # ── Streaming responses ─────────────────────────────────────────────────
+
+    TickResponse:
+      type: object
+      properties:
+        symbol:           { type: string }
+        ts:               { type: number }
+        price:            { type: number }
+        n_bars:           { type: integer }
+        regime_label:     { type: string }
+        vol_state:        { type: string, enum: [low, med_low, med_high, high] }
+        trend_state:      { type: string, enum: [strong_bear, bear, bull, strong_bull] }
+        vol_probs:
+          type: object
+          properties:
+            low:    { type: number }
+            medium: { type: number }
+            high:   { type: number }
+        trend_probs:
+          type: object
+          properties:
+            bear:    { type: number }
+            neutral: { type: number }
+            bull:    { type: number }
+        confidence:       { type: number }
+        risk_multiplier:  { type: number }
+        recommended_f:    { type: number }
+        sharpe_ratio:     { type: number }
+        var_95:           { type: number }
+        cvar_95:          { type: number }
+        suggested_stop:   { type: number }
+        suggested_tp:     { type: number }
+        regime_changed:   { type: boolean }
+        alert:            { type: string, nullable: true }
+        refit_count:      { type: integer }
+
+    BufferingStub:
+      type: object
+      properties:
+        status:  { type: string, example: buffering }
+        n_bars:  { type: integer }
+
+    SessionStatus:
+      type: object
+      properties:
+        symbol:       { type: string }
+        ready:        { type: boolean }
+        n_bars:       { type: integer }
+        refit_count:  { type: integer }
+        tick_count:   { type: integer }
+        last_regime:  { type: string }
+
+    SessionStats:
+      type: object
+      properties:
+        ready:        { type: boolean }
+        n_bars:       { type: integer }
+        refit_count:  { type: integer }
+        tick_count:   { type: integer }
+        last_regime:  { type: string }
+
+    RegimeAlert:
+      type: object
+      properties:
+        type:      { type: string, example: alert }
+        symbol:    { type: string }
+        ts:        { type: number }
+        previous:  { type: string }
+        current:   { type: string }
+        severity:  { type: string, enum: [info, warning, critical] }
+        message:   { type: string }
+
+    WsMessage:
+      type: object
+      required: [type, symbol]
+      properties:
+        type:
+          type: string
+          enum: [seed, tick, subscribe, ping]
+        symbol:  { type: string }
+        price:   { type: number, nullable: true }
+        prices:
+          type: array
+          items: { type: number }
+          nullable: true
+        ts:      { type: number, nullable: true }
+
+    Observation:
+      type: object
+      description: 24-feature observation vector from InferenceObservationBuilder
+      properties:
+        vector:
+          type: array
+          items: { type: number }
+          minItems: 24
+          maxItems: 24
+          description: |
+            Full 24-feature observation. Index reference:
+            0=log_ret_1bar, 1=log_ret_3bar, 2=log_ret_10bar,
+            3=norm_atr, 4=rolling_vol_20, 5=ema_distance,
+            6=hhll_score, 7=vol_regime_pct, 8=atr_vs_baseline, 9=vol_slope,
+            10-13=regime_prob_{0..3}, 14=vol_prob_low, 15=vol_prob_medium,
+            16=vol_prob_high, 17=trend_prob_down, 18=trend_prob_neutral,
+            19=trend_prob_up, 20=regime_quality, 21=state_confidence,
+            22=masaniello_pressure, 23=drawdown_factor
+        vol_probs:
+          type: array
+          items: { type: number }
+          minItems: 4
+          maxItems: 4
+          description: "4-state vol posteriors: [low, med_low, med_high, high]"
+        trend_probs:
+          type: array
+          items: { type: number }
+          minItems: 4
+          maxItems: 4
+          description: "4-state trend posteriors: [strong_bear, bear, bull, strong_bull]"
+        regime_label:   { type: string }
+        confidence:     { type: number, minimum: 0, maximum: 1 }
+        bar_index:      { type: integer }
+        markov_uniform: { type: boolean, description: "true if Markov features appear uniform (bug indicator)" }
+
+    FeatureIndex:
+      type: object
+      description: Feature index constants (F namespace)
+      properties:
+        LOG_RET_1:          { type: integer, example: 0 }
+        LOG_RET_3:          { type: integer, example: 1 }
+        LOG_RET_10:         { type: integer, example: 2 }
+        NORMALISED_ATR:     { type: integer, example: 3 }
+        ROLLING_VOL_20:     { type: integer, example: 4 }
+        EMA_DISTANCE:       { type: integer, example: 5 }
+        HHLL_SCORE:         { type: integer, example: 6 }
+        VOL_REGIME_PCT:     { type: integer, example: 7 }
+        ATR_VS_BASELINE:    { type: integer, example: 8 }
+        VOL_TREND_SLOPE:    { type: integer, example: 9 }
+        REGIME_PROB_0:      { type: integer, example: 10 }
+        REGIME_PROB_3:      { type: integer, example: 13 }
+        VOL_PROB_LOW:       { type: integer, example: 14 }
+        VOL_PROB_MEDIUM:    { type: integer, example: 15 }
+        VOL_PROB_HIGH:      { type: integer, example: 16 }
+        TREND_PROB_DOWN:    { type: integer, example: 17 }
+        TREND_PROB_NEUTRAL: { type: integer, example: 18 }
+        TREND_PROB_UP:      { type: integer, example: 19 }
+        REGIME_QUALITY:     { type: integer, example: 20 }
+        STATE_CONFIDENCE:   { type: integer, example: 21 }
+        MASANIELLO:         { type: integer, example: 22 }
+        DRAWDOWN_FACTOR:    { type: integer, example: 23 }
+        N_FEATURES:         { type: integer, example: 24 }
+        MARKOV_SLICE:       { type: string,  example: "slice(14, 20)" }

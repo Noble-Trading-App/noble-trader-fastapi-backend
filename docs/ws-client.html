@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WS Test Client — Regime Risk Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080c10; --bg2: #0d1117; --bg3: #111820;
+  --border: #1e2a36; --border2: #243040;
+  --text: #c8d6e5; --text-dim: #5a7a96; --text-bright: #e8f4ff;
+  --accent: #00d4ff; --green: #00e5a0; --red: #ff4d6a;
+  --gold: #f0c060; --purple: #a78bfa; --orange: #ff8c42;
+  --mono: 'IBM Plex Mono', monospace;
+  --display: 'Syne', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--mono); font-size: 13px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+/* Header */
+header {
+  background: var(--bg2); border-bottom: 1px solid var(--border);
+  padding: 12px 20px; display: flex; align-items: center; gap: 16px; flex-shrink: 0;
+}
+.logo { width: 22px; height: 22px; background: linear-gradient(135deg, var(--accent), var(--purple)); clip-path: polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%); }
+.title { font-family: var(--display); font-size: 14px; font-weight: 800; color: var(--text-bright); }
+.subtitle { font-size: 11px; color: var(--text-dim); margin-left: auto; }
+
+/* Status bar */
+#status-bar {
+  background: var(--bg3); border-bottom: 1px solid var(--border);
+  padding: 8px 20px; display: flex; align-items: center; gap: 16px; flex-shrink: 0; font-size: 11px;
+}
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-dim); transition: background 0.3s; }
+.dot.connected { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.dot.error { background: var(--red); }
+#status-text { color: var(--text-dim); }
+.stat { color: var(--text-dim); }
+.stat span { color: var(--accent); margin-left: 4px; }
+
+/* Layout */
+.layout { display: flex; flex: 1; overflow: hidden; }
+
+/* Left panel — controls */
+.controls {
+  width: 320px; flex-shrink: 0;
+  background: var(--bg2); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; overflow-y: auto;
+}
+.controls::-webkit-scrollbar { width: 3px; }
+.controls::-webkit-scrollbar-thumb { background: var(--border2); }
+
+.section { padding: 16px; border-bottom: 1px solid var(--border); }
+.section-label {
+  font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--text-dim); margin-bottom: 12px;
+  display: flex; align-items: center; gap: 6px;
+}
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+label { display: block; font-size: 10px; color: var(--text-dim); margin-bottom: 4px; margin-top: 10px; }
+label:first-of-type { margin-top: 0; }
+
+input, textarea, select {
+  width: 100%; background: var(--bg3); border: 1px solid var(--border);
+  color: var(--text); font-family: var(--mono); font-size: 12px;
+  padding: 7px 10px; border-radius: 3px; outline: none; transition: border-color 0.15s;
+}
+input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+textarea { resize: vertical; min-height: 80px; }
+
+.btn {
+  width: 100%; padding: 9px; border-radius: 3px; border: none;
+  font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: 0.05em;
+  cursor: pointer; transition: all 0.15s; margin-top: 8px;
+}
+.btn-primary { background: var(--accent); color: #000; }
+.btn-primary:hover { background: #00b8e0; }
+.btn-primary:disabled { background: var(--border2); color: var(--text-dim); cursor: not-allowed; }
+.btn-danger { background: transparent; border: 1px solid var(--red); color: var(--red); }
+.btn-danger:hover { background: rgba(255,77,106,0.1); }
+.btn-secondary { background: transparent; border: 1px solid var(--border2); color: var(--text-dim); }
+.btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Right panel — log */
+.log-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+.log-toolbar {
+  background: var(--bg2); border-bottom: 1px solid var(--border);
+  padding: 8px 16px; display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+}
+.log-title { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); }
+.filter-btns { display: flex; gap: 4px; margin-left: auto; }
+.filter-btn {
+  font-family: var(--mono); font-size: 10px; padding: 3px 8px;
+  border-radius: 2px; border: 1px solid var(--border); background: transparent;
+  color: var(--text-dim); cursor: pointer; transition: all 0.1s;
+}
+.filter-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(0,212,255,0.08); }
+#clear-btn { font-family: var(--mono); font-size: 10px; padding: 3px 8px; border-radius: 2px; border: 1px solid var(--border); background: transparent; color: var(--text-dim); cursor: pointer; }
+#clear-btn:hover { color: var(--red); border-color: var(--red); }
+
+#log {
+  flex: 1; overflow-y: auto; padding: 12px 16px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+#log::-webkit-scrollbar { width: 4px; }
+#log::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+.log-entry {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 4px; padding: 10px 12px; font-size: 11.5px;
+  animation: slideIn 0.15s ease;
+}
+@keyframes slideIn { from { opacity: 0; transform: translateX(-4px); } to { opacity: 1; transform: translateX(0); } }
+
+.log-entry.type-tick    { border-left: 3px solid var(--accent); }
+.log-entry.type-alert   { border-left: 3px solid var(--red); background: rgba(255,77,106,0.04); }
+.log-entry.type-seeded  { border-left: 3px solid var(--green); }
+.log-entry.type-error   { border-left: 3px solid var(--red); background: rgba(255,77,106,0.06); }
+.log-entry.type-sent    { border-left: 3px solid var(--text-dim); opacity: 0.7; }
+.log-entry.type-system  { border-left: 3px solid var(--purple); background: rgba(167,139,250,0.04); }
+.log-entry.type-pong    { border-left: 3px solid var(--text-dim); opacity: 0.5; }
+
+.log-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.log-type {
+  font-size: 9px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 2px 6px; border-radius: 2px;
+}
+.type-tick .log-type    { background: rgba(0,212,255,0.15); color: var(--accent); }
+.type-alert .log-type   { background: rgba(255,77,106,0.15); color: var(--red); }
+.type-seeded .log-type  { background: rgba(0,229,160,0.15); color: var(--green); }
+.type-error .log-type   { background: rgba(255,77,106,0.15); color: var(--red); }
+.type-sent .log-type    { background: rgba(90,122,150,0.2); color: var(--text-dim); }
+.type-system .log-type  { background: rgba(167,139,250,0.15); color: var(--purple); }
+.type-pong .log-type    { background: rgba(90,122,150,0.15); color: var(--text-dim); }
+
+.log-ts { font-size: 10px; color: var(--text-dim); margin-left: auto; }
+
+/* Tick layout */
+.tick-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 4px; }
+.tick-cell { background: var(--bg3); border-radius: 3px; padding: 6px 8px; }
+.tick-label { font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
+.tick-value { font-size: 13px; font-weight: 600; color: var(--text-bright); margin-top: 2px; }
+.tick-value.regime  { color: var(--accent); font-size: 11px; }
+.tick-value.changed { color: var(--red); }
+.tick-value.green   { color: var(--green); }
+.tick-value.gold    { color: var(--gold); }
+
+/* Regime badge */
+.regime-badge { display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; }
+.regime-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+/* Prob bars */
+.prob-bars { display: flex; flex-direction: column; gap: 3px; margin-top: 8px; }
+.prob-row { display: flex; align-items: center; gap: 6px; }
+.prob-label { font-size: 9px; color: var(--text-dim); width: 48px; text-align: right; }
+.prob-track { flex: 1; height: 4px; background: var(--bg3); border-radius: 2px; overflow: hidden; }
+.prob-fill { height: 100%; border-radius: 2px; transition: width 0.3s ease; }
+.prob-pct { font-size: 10px; color: var(--text-dim); width: 36px; }
+
+/* JSON pre */
+.log-json {
+  font-size: 10.5px; line-height: 1.6; color: var(--text-dim);
+  max-height: 120px; overflow-y: auto; margin-top: 4px;
+  background: var(--bg3); border-radius: 3px; padding: 6px 8px;
+}
+.log-json::-webkit-scrollbar { width: 3px; }
+.log-json::-webkit-scrollbar-thumb { background: var(--border2); }
+
+/* Metrics panel */
+#metrics {
+  background: var(--bg2); border-top: 1px solid var(--border);
+  padding: 10px 16px; display: flex; gap: 24px; flex-shrink: 0; overflow-x: auto;
+}
+.metric { flex-shrink: 0; }
+.metric-label { font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; }
+.metric-value { font-size: 14px; font-weight: 600; color: var(--text-bright); margin-top: 2px; }
+.metric-value.accent  { color: var(--accent); }
+.metric-value.green   { color: var(--green); }
+.metric-value.gold    { color: var(--gold); }
+.metric-value.red     { color: var(--red); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"></div>
+  <div class="title">WebSocket Test Client</div>
+  <div class="subtitle">Regime Risk Platform v2.0</div>
+</header>
+
+<div id="status-bar">
+  <div class="dot" id="dot"></div>
+  <span id="status-text">disconnected</span>
+  <div class="stat">ticks <span id="s-ticks">0</span></div>
+  <div class="stat">regime <span id="s-regime">—</span></div>
+  <div class="stat">f* <span id="s-f">—</span></div>
+  <div class="stat">VaR95 <span id="s-var">—</span></div>
+  <div class="stat">alerts <span id="s-alerts">0</span></div>
+</div>
+
+<div class="layout">
+
+  <!-- CONTROLS -->
+  <div class="controls">
+
+    <div class="section">
+      <div class="section-label">Connection</div>
+      <label>WebSocket URL</label>
+      <input id="url" value="ws://localhost:8000/ws/SPY" type="text">
+      <button class="btn btn-primary" id="connect-btn" onclick="toggleConnect()">Connect</button>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Seed Session</div>
+      <label>Symbol</label>
+      <input id="seed-symbol" value="SPY">
+      <label>Number of historical bars to generate</label>
+      <input id="seed-bars" type="number" value="200" min="51" max="2000">
+      <label>Seed regime</label>
+      <select id="seed-regime">
+        <option value="strong_bull">Low-vol Strong Bull (μ=0.0012, σ=0.005)</option>
+        <option value="bull">Med-Low Bull (μ=0.0004, σ=0.011)</option>
+        <option value="bear">Med-High Bear (μ=-0.0010, σ=0.020)</option>
+        <option value="strong_bear">High-vol Strong Bear (μ=-0.0020, σ=0.032)</option>
+      </select>
+      <button class="btn btn-secondary" id="seed-btn" onclick="sendSeed()" disabled>Send Seed</button>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Tick Stream</div>
+      <label>Price drift (μ per tick)</label>
+      <input id="tick-mu" type="number" value="0.0005" step="0.0001">
+      <label>Price vol (σ per tick)</label>
+      <input id="tick-sigma" type="number" value="0.008" step="0.001">
+      <label>Interval (ms)</label>
+      <input id="tick-interval" type="number" value="500" min="50" max="5000">
+      <button class="btn btn-primary" id="stream-btn" onclick="toggleStream()" disabled>▶ Start Stream</button>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Manual Tick</div>
+      <label>Price</label>
+      <input id="manual-price" type="number" step="0.01" value="500.00">
+      <button class="btn btn-secondary" onclick="sendManualTick()" id="manual-btn" disabled>Send Tick</button>
+    </div>
+
+    <div class="section">
+      <div class="section-label">Message</div>
+      <label>Raw JSON</label>
+      <textarea id="raw-msg" rows="4">{"type": "ping", "symbol": "SPY"}</textarea>
+      <button class="btn btn-secondary" onclick="sendRaw()" id="raw-btn" disabled>Send</button>
+      <button class="btn btn-danger" style="margin-top:4px" onclick="disconnect()">Disconnect</button>
+    </div>
+
+  </div>
+
+  <!-- LOG PANEL -->
+  <div class="log-panel">
+    <div class="log-toolbar">
+      <div class="log-title">Message Log</div>
+      <div class="filter-btns">
+        <button class="filter-btn active" onclick="setFilter('all', this)">ALL</button>
+        <button class="filter-btn" onclick="setFilter('tick', this)">TICK</button>
+        <button class="filter-btn" onclick="setFilter('alert', this)">ALERT</button>
+        <button class="filter-btn" onclick="setFilter('sent', this)">SENT</button>
+      </div>
+      <button id="clear-btn" onclick="clearLog()">clear</button>
+    </div>
+
+    <div id="log"></div>
+
+    <div id="metrics">
+      <div class="metric"><div class="metric-label">Regime</div><div class="metric-value accent" id="m-regime">—</div></div>
+      <div class="metric"><div class="metric-label">Confidence</div><div class="metric-value" id="m-conf">—</div></div>
+      <div class="metric"><div class="metric-label">Risk Mult</div><div class="metric-value gold" id="m-mult">—</div></div>
+      <div class="metric"><div class="metric-label">Recommended f*</div><div class="metric-value green" id="m-f">—</div></div>
+      <div class="metric"><div class="metric-label">Sharpe</div><div class="metric-value" id="m-sharpe">—</div></div>
+      <div class="metric"><div class="metric-label">VaR 95%</div><div class="metric-value" id="m-var">—</div></div>
+      <div class="metric"><div class="metric-label">CVaR 95%</div><div class="metric-value" id="m-cvar">—</div></div>
+      <div class="metric"><div class="metric-label">Stop</div><div class="metric-value red" id="m-stop">—</div></div>
+      <div class="metric"><div class="metric-label">TP</div><div class="metric-value green" id="m-tp">—</div></div>
+      <div class="metric"><div class="metric-label">Ticks</div><div class="metric-value" id="m-ticks">0</div></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let ws = null;
+let streamTimer = null;
+let streaming = false;
+let currentPrice = 500;
+let tickCount = 0;
+let alertCount = 0;
+let activeFilter = 'all';
+
+// ── Connection ────────────────────────────────────────────
+function toggleConnect() {
+  if (ws && ws.readyState === WebSocket.OPEN) disconnect();
+  else connect();
+}
+
+function connect() {
+  const url = document.getElementById('url').value;
+  ws = new WebSocket(url);
+
+  ws.onopen = () => {
+    setStatus('connected', true);
+    setButtons(true);
+    log('system', null, { message: `Connected to ${url}` });
+  };
+
+  ws.onmessage = e => {
+    try {
+      const msg = JSON.parse(e.data);
+      handleMessage(msg);
+    } catch { log('error', null, { message: 'Non-JSON message: ' + e.data }); }
+  };
+
+  ws.onclose = () => {
+    setStatus('disconnected', false);
+    setButtons(false);
+    stopStream();
+    log('system', null, { message: 'Connection closed' });
+  };
+
+  ws.onerror = () => {
+    setStatus('error', false);
+    log('error', null, { message: 'WebSocket error — is the server running?' });
+  };
+}
+
+function disconnect() {
+  stopStream();
+  if (ws) { ws.close(); ws = null; }
+}
+
+// ── Message handling ──────────────────────────────────────
+function handleMessage(msg) {
+  const type = msg.type || 'unknown';
+
+  if (type === 'tick') {
+    tickCount++;
+    updateMetrics(msg);
+    if (activeFilter === 'all' || activeFilter === 'tick') renderTick(msg);
+  } else if (type === 'alert') {
+    alertCount++;
+    document.getElementById('s-alerts').textContent = alertCount;
+    if (activeFilter === 'all' || activeFilter === 'alert') renderAlert(msg);
+    else appendLog(buildEntry('alert', msg));
+  } else if (type === 'seeded') {
+    log('seeded', msg, null);
+  } else if (type === 'pong') {
+    log('pong', msg, null);
+  } else if (type === 'error') {
+    log('error', msg, null);
+  } else {
+    log('system', msg, null);
+  }
+}
+
+// ── Seed ─────────────────────────────────────────────────
+function sendSeed() {
+  const symbol = document.getElementById('seed-symbol').value;
+  const n = parseInt(document.getElementById('seed-bars').value);
+  const regime = document.getElementById('seed-regime').value;
+
+  const params = {
+    bull:    { mu: 0.0008, sigma: 0.007 },
+    bear:    { mu: -0.001, sigma: 0.025 },
+    neutral: { mu: 0.0002, sigma: 0.012 },
+  }[regime];
+
+  const prices = generatePrices(n, params.mu, params.sigma, currentPrice);
+  currentPrice = prices[prices.length - 1];
+
+  const msg = { type: 'seed', symbol, prices };
+  send(msg);
+}
+
+// ── Streaming ─────────────────────────────────────────────
+function toggleStream() {
+  if (streaming) stopStream();
+  else startStream();
+}
+
+function startStream() {
+  streaming = true;
+  document.getElementById('stream-btn').textContent = '■ Stop Stream';
+  document.getElementById('stream-btn').style.background = 'rgba(255,77,106,0.2)';
+  document.getElementById('stream-btn').style.color = 'var(--red)';
+
+  const mu = parseFloat(document.getElementById('tick-mu').value);
+  const sigma = parseFloat(document.getElementById('tick-sigma').value);
+  const interval = parseInt(document.getElementById('tick-interval').value);
+
+  function emit() {
+    const r = mu + sigma * randn();
+    currentPrice *= (1 + r);
+    currentPrice = Math.max(currentPrice, 0.01);
+    document.getElementById('manual-price').value = currentPrice.toFixed(2);
+    sendTick(currentPrice);
+    streamTimer = setTimeout(emit, interval);
+  }
+  emit();
+}
+
+function stopStream() {
+  streaming = false;
+  clearTimeout(streamTimer);
+  const btn = document.getElementById('stream-btn');
+  btn.textContent = '▶ Start Stream';
+  btn.style.background = '';
+  btn.style.color = '';
+}
+
+function sendManualTick() {
+  const price = parseFloat(document.getElementById('manual-price').value);
+  currentPrice = price;
+  sendTick(price);
+}
+
+function sendTick(price) {
+  const symbol = document.getElementById('seed-symbol').value;
+  send({ type: 'tick', symbol, price: parseFloat(price.toFixed(4)), ts: Date.now() / 1000 });
+}
+
+function sendRaw() {
+  try {
+    const msg = JSON.parse(document.getElementById('raw-msg').value);
+    send(msg);
+  } catch(e) {
+    log('error', null, { message: 'Invalid JSON: ' + e.message });
+  }
+}
+
+function send(msg) {
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  ws.send(JSON.stringify(msg));
+  if (activeFilter === 'all' || activeFilter === 'sent') {
+    log('sent', msg, null);
+  }
+}
+
+// ── Rendering ─────────────────────────────────────────────
+function renderTick(msg) {
+  const volColor = { low: 'green', medium: 'gold', high: 'red' }[msg.vol_state] || '';
+  const trendColor = { bull: 'green', neutral: '', bear: 'red' }[msg.trend_state] || '';
+
+  const entry = document.createElement('div');
+  entry.className = `log-entry type-tick`;
+  entry.innerHTML = `
+    <div class="log-header">
+      <span class="log-type">tick</span>
+      <span style="color:var(--text-dim); font-size:10px">${msg.symbol}</span>
+      <span style="color:var(--text-bright); font-size:11px">$${msg.price?.toFixed(2)}</span>
+      ${msg.regime_changed ? '<span style="color:var(--red);font-size:10px;font-weight:600">⚡ REGIME CHANGE</span>' : ''}
+      <span class="log-ts">${new Date(msg.ts * 1000).toLocaleTimeString()}</span>
+    </div>
+    <div class="tick-grid">
+      <div class="tick-cell">
+        <div class="tick-label">Regime</div>
+        <div class="tick-value regime">${msg.regime_label || '—'}</div>
+      </div>
+      <div class="tick-cell">
+        <div class="tick-label">Recommended f*</div>
+        <div class="tick-value ${msg.recommended_f > 0.3 ? 'green' : 'gold'}">${pct(msg.recommended_f)}</div>
+      </div>
+      <div class="tick-cell">
+        <div class="tick-label">Risk Mult</div>
+        <div class="tick-value ${msg.risk_multiplier >= 1 ? 'green' : 'gold'}">${msg.risk_multiplier?.toFixed(2)}×</div>
+      </div>
+      <div class="tick-cell">
+        <div class="tick-label">VaR 95%</div>
+        <div class="tick-value gold">${pct(msg.var_95)}</div>
+      </div>
+      <div class="tick-cell">
+        <div class="tick-label">Stop / TP</div>
+        <div class="tick-value" style="font-size:11px"><span style="color:var(--red)">${pct(msg.suggested_stop)}</span> / <span style="color:var(--green)">${pct(msg.suggested_tp)}</span></div>
+      </div>
+      <div class="tick-cell">
+        <div class="tick-label">Confidence</div>
+        <div class="tick-value">${pct(msg.confidence)}</div>
+      </div>
+    </div>
+    <div class="prob-bars">
+      ${probBar('low',  msg.vol_probs?.low,      '#00e5a0')}
+      ${probBar('m-lo', msg.vol_probs?.med_low,  '#a3e635')}
+      ${probBar('m-hi', msg.vol_probs?.med_high, '#f0c060')}
+      ${probBar('high', msg.vol_probs?.high,     '#ff4d6a')}
+    </div>`;
+  appendLog(entry);
+}
+
+function renderAlert(msg) {
+  const entry = document.createElement('div');
+  entry.className = 'log-entry type-alert';
+  const sevColor = { info: 'var(--accent)', warning: 'var(--gold)', critical: 'var(--red)' }[msg.severity] || 'var(--text)';
+  entry.innerHTML = `
+    <div class="log-header">
+      <span class="log-type">alert</span>
+      <span style="color:${sevColor}; font-weight:600; font-size:10px; text-transform:uppercase">${msg.severity}</span>
+      <span style="color:var(--text-dim); font-size:10px">${msg.symbol}</span>
+      <span class="log-ts">${new Date(msg.ts * 1000).toLocaleTimeString()}</span>
+    </div>
+    <div style="margin-top:6px; font-size:12px;">
+      <span style="color:var(--text-dim)">${msg.previous}</span>
+      <span style="color:var(--text-bright)"> → </span>
+      <span style="color:var(--accent)">${msg.current}</span>
+    </div>
+    <div style="margin-top:4px; font-size:11px; color:var(--text-dim)">${msg.message || ''}</div>`;
+  appendLog(entry);
+}
+
+function log(type, data, extra) {
+  const entry = document.createElement('div');
+  entry.className = `log-entry type-${type}`;
+  const ts = new Date().toLocaleTimeString();
+  const label = type.toUpperCase();
+  const content = extra?.message || (data ? JSON.stringify(data, null, 2) : '');
+  entry.innerHTML = `
+    <div class="log-header">
+      <span class="log-type">${label}</span>
+      <span class="log-ts">${ts}</span>
+    </div>
+    <div class="log-json">${htmlEscape(content)}</div>`;
+  appendLog(entry);
+}
+
+function appendLog(el) {
+  const log = document.getElementById('log');
+  log.appendChild(el);
+  log.scrollTop = log.scrollHeight;
+  // Trim to 200 entries
+  while (log.children.length > 200) log.removeChild(log.firstChild);
+}
+
+function updateMetrics(msg) {
+  document.getElementById('m-regime').textContent  = msg.regime_label || '—';
+  document.getElementById('m-conf').textContent    = pct(msg.confidence);
+  document.getElementById('m-mult').textContent    = (msg.risk_multiplier?.toFixed(2) || '—') + '×';
+  document.getElementById('m-f').textContent       = pct(msg.recommended_f);
+  document.getElementById('m-sharpe').textContent  = msg.sharpe_ratio?.toFixed(2) || '—';
+  document.getElementById('m-var').textContent     = pct(msg.var_95);
+  document.getElementById('m-cvar').textContent    = pct(msg.cvar_95);
+  document.getElementById('m-stop').textContent    = pct(msg.suggested_stop);
+  document.getElementById('m-tp').textContent      = pct(msg.suggested_tp);
+  document.getElementById('m-ticks').textContent   = tickCount;
+  document.getElementById('s-ticks').textContent   = tickCount;
+  document.getElementById('s-regime').textContent  = msg.regime_label || '—';
+  document.getElementById('s-f').textContent       = pct(msg.recommended_f);
+  document.getElementById('s-var').textContent     = pct(msg.var_95);
+}
+
+// ── Helpers ───────────────────────────────────────────────
+function probBar(label, val, color) {
+  const pctVal = ((val || 0) * 100).toFixed(1);
+  return `<div class="prob-row">
+    <div class="prob-label">${label}</div>
+    <div class="prob-track"><div class="prob-fill" style="width:${pctVal}%;background:${color}"></div></div>
+    <div class="prob-pct">${pctVal}%</div>
+  </div>`;
+}
+
+function pct(v) { return v != null ? (v * 100).toFixed(2) + '%' : '—'; }
+
+function htmlEscape(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function randn() {
+  let u = 0, v = 0;
+  while (!u) u = Math.random();
+  while (!v) v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+
+function generatePrices(n, mu, sigma, start) {
+  const prices = [start];
+  for (let i = 1; i < n; i++) {
+    prices.push(prices[i - 1] * (1 + mu + sigma * randn()));
+  }
+  return prices.map(p => parseFloat(p.toFixed(4)));
+}
+
+function setStatus(text, connected) {
+  document.getElementById('status-text').textContent = text;
+  const dot = document.getElementById('dot');
+  dot.className = 'dot' + (connected ? ' connected' : text === 'error' ? ' error' : '');
+}
+
+function setButtons(connected) {
+  document.getElementById('connect-btn').textContent = connected ? 'Disconnect' : 'Connect';
+  ['seed-btn','stream-btn','manual-btn','raw-btn'].forEach(id => {
+    document.getElementById(id).disabled = !connected;
+  });
+}
+
+function setFilter(f, btn) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function clearLog() { document.getElementById('log').innerHTML = ''; }
+</script>
+</body>
+</html>
