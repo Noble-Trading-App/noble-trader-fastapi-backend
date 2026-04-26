@@ -32,8 +32,8 @@ async def full_analysis(req: FullAnalysisRequest):
 
         regime_resp = RegimeResponse(
             symbol=req.symbol,
-            vol_probs=dict(zip(["low","medium","high"], snap.vol_probs)),
-            trend_probs=dict(zip(["bear","neutral","bull"], snap.trend_probs)),
+            vol_probs=dict(zip(RegimeHMM.VOL_LABELS, snap.vol_probs)),
+            trend_probs=dict(zip(RegimeHMM.TREND_LABELS, snap.trend_probs)),
             vol_state=snap.vol_state,
             trend_state=snap.trend_state,
             regime_label=snap.regime_label,

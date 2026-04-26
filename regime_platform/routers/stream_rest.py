@@ -15,6 +15,7 @@ from fastapi import APIRouter, HTTPException
 
 from ..models.stream_schemas import SeedRequest, TickIngest, TickResponse, SessionStatus
 from ..services.registry import registry
+from ..core.regime_engine import RegimeHMM
 
 router = APIRouter(prefix="/stream", tags=["Live Stream"])
 
@@ -30,8 +31,8 @@ def _tick_to_response(tick) -> TickResponse:
         regime_label=tick.regime_label,
         vol_state=tick.vol_state,
         trend_state=tick.trend_state,
-        vol_probs=dict(zip(["low", "medium", "high"], tick.vol_probs)),
-        trend_probs=dict(zip(["bear", "neutral", "bull"], tick.trend_probs)),
+        vol_probs=dict(zip(RegimeHMM.VOL_LABELS, tick.vol_probs)),
+        trend_probs=dict(zip(RegimeHMM.TREND_LABELS, tick.trend_probs)),
         confidence=tick.confidence,
         risk_multiplier=tick.risk_multiplier,
         recommended_f=tick.recommended_f,

@@ -29,6 +29,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.responses import StreamingResponse
 
 from ..services.registry import registry
+from ..core.regime_engine import RegimeHMM
 from ..services.stream_session import RegimeAlert
 from ..models.stream_schemas import WsMessage
 
@@ -119,8 +120,8 @@ async def websocket_stream(websocket: WebSocket, symbol: str):
                 else:
                     d = tick.to_dict()
                     d["type"] = "tick"
-                    d["vol_probs"]   = dict(zip(["low","medium","high"],   d["vol_probs"]))
-                    d["trend_probs"] = dict(zip(["bear","neutral","bull"],  d["trend_probs"]))
+                    d["vol_probs"]   = dict(zip(RegimeHMM.VOL_LABELS,   d["vol_probs"]))
+                    d["trend_probs"] = dict(zip(RegimeHMM.TREND_LABELS,  d["trend_probs"]))
                     await _send(d)
 
             # ── subscribe (push mode — client just listens) ───────────────────
@@ -138,8 +139,8 @@ async def websocket_stream(websocket: WebSocket, symbol: str):
                             tick = await asyncio.wait_for(q.get(), timeout=30)
                             d = tick.to_dict()
                             d["type"] = "tick"
-                            d["vol_probs"]   = dict(zip(["low","medium","high"],  d["vol_probs"]))
-                            d["trend_probs"] = dict(zip(["bear","neutral","bull"], d["trend_probs"]))
+                            d["vol_probs"]   = dict(zip(RegimeHMM.VOL_LABELS,  d["vol_probs"]))
+                            d["trend_probs"] = dict(zip(RegimeHMM.TREND_LABELS, d["trend_probs"]))
                             await _send(d)
                         except asyncio.TimeoutError:
                             await _send({"type": "heartbeat", "ts": time.time()})
@@ -182,8 +183,8 @@ async def sse_symbol(symbol: str):
                 try:
                     tick = await asyncio.wait_for(q.get(), timeout=15)
                     d = tick.to_dict()
-                    d["vol_probs"]   = dict(zip(["low","medium","high"],   d["vol_probs"]))
-                    d["trend_probs"] = dict(zip(["bear","neutral","bull"],  d["trend_probs"]))
+                    d["vol_probs"]   = dict(zip(RegimeHMM.VOL_LABELS,   d["vol_probs"]))
+                    d["trend_probs"] = dict(zip(RegimeHMM.TREND_LABELS,  d["trend_probs"]))
                     yield f"data: {json.dumps(d)}\n\n"
                 except asyncio.TimeoutError:
                     yield f": heartbeat {time.time()}\n\n"
