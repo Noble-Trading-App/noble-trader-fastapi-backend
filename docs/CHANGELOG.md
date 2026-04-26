@@ -125,7 +125,7 @@ Follows [Semantic Versioning](https://semver.org/).
 #### `models/stream_schemas.py` — Streaming Pydantic models
 - `SeedRequest`, `TickIngest`, `TickResponse`, `SessionStatus`, `WsMessage`
 
-#### `main.py`
+#### `main_v2.py`
 - Updated app factory including all streaming routers alongside existing batch routers
 
 #### `test_streaming.py`
