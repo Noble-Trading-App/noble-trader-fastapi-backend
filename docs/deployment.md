@@ -8,10 +8,10 @@ Operational reference for running the Dynamic Regime Risk Management Platform in
 
 ```bash
 # Development (single worker, auto-reload)
-uvicorn main_v2:app --reload --port 8000
+uvicorn main_v4:app --reload --port 8000
 
 # Production-like (4 workers, no reload)
-uvicorn main_v2:app --host 0.0.0.0 --port 8000 --workers 4
+uvicorn main_v4:app --host 0.0.0.0 --port 8000 --workers 4
 ```
 
 > **Note on multiple workers:** Each uvicorn worker process has its own `SessionRegistry`. Live streaming sessions are not shared across workers. For multi-worker deployments with streaming, use a single worker or add Redis-backed session storage (see Extending below).

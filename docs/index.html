@@ -766,6 +766,7 @@ td code {
     <a class="nav-link" onclick="show('batch-full')"><span class="nav-icon">★</span> Full Pipeline <span class="method-tag tag-post">POST</span></a>
     <a class="nav-link" onclick="show('batch-regime')"><span class="nav-icon">◑</span> Regime Detect <span class="method-tag tag-post">POST</span></a>
     <a class="nav-link" onclick="show('batch-size')"><span class="nav-icon">◐</span> Kelly Sizing <span class="method-tag tag-post">POST</span></a>
+    <a class="nav-link" onclick="show('masaniello')"><span class="nav-icon">◑</span> Masaniello Sizer</a>
     <a class="nav-link" onclick="show('batch-risk')"><span class="nav-icon">◒</span> Risk Analyse <span class="method-tag tag-post">POST</span></a>
   </div>
 
@@ -776,6 +777,22 @@ td code {
     <a class="nav-link" onclick="show('stream-ws')"><span class="nav-icon">⇄</span> WebSocket <span class="method-tag tag-ws">WS</span></a>
     <a class="nav-link" onclick="show('stream-sse')"><span class="nav-icon">→</span> SSE Streams <span class="method-tag tag-sse">SSE</span></a>
     <a class="nav-link" onclick="show('stream-sessions')"><span class="nav-icon">≡</span> Sessions <span class="method-tag tag-get">GET</span></a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">v3.0 Features</div>
+    <a class="nav-link" onclick="show('gpu-overview')"><span class="nav-icon">⬡</span> GPU HMM <span class="method-tag tag-get">GET</span></a>
+    <a class="nav-link" onclick="show('feeds-overview')"><span class="nav-icon">→</span> Live Feeds <span class="method-tag tag-post">POST</span></a>
+    <a class="nav-link" onclick="show('corr-overview')"><span class="nav-icon">◎</span> Correlation <span class="method-tag tag-post">POST</span></a>
+    <a class="nav-link" onclick="show('opt-overview')"><span class="nav-icon">◈</span> Optimise <span class="method-tag tag-post">POST</span></a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">v2.1 Features</div>
+    <a class="nav-link" onclick="show('sim-overview')"><span class="nav-icon">◎</span> Simulation <span class="method-tag tag-post">POST</span></a>
+    <a class="nav-link" onclick="show('portfolio-overview')"><span class="nav-icon">⬡</span> Portfolio <span class="method-tag tag-get">GET</span></a>
+    <a class="nav-link" onclick="show('auth-overview')"><span class="nav-icon">◈</span> Auth / JWT</a>
+    <a class="nav-link" onclick="show('redis-overview')"><span class="nav-icon">◻</span> Redis Persistence</a>
   </div>
 
   <div class="nav-section">
@@ -2036,6 +2053,517 @@ builder.<span class="fn">seed</span>(prices, high, low)
     <span class="cmt"># Now the full 24-feature vector is ready for your policy</span>
     <span class="kw">assert not</span> obs.<span class="fn">is_markov_uniform</span>()
     policy_action = model.<span class="fn">predict</span>(obs.vector)</code></pre>
+</div>
+
+<!-- ══════════════════════════ SIM: OVERVIEW ═══════════════════════════════════ -->
+<div class="page" id="page-sim-overview">
+  <h1>Regime <span class="accent-word">Simulation</span></h1>
+  <div class="hero">
+    <div class="hero-eyebrow">// POST /simulate/{symbol} — core/simulator.py</div>
+    <p class="hero-desc">
+      Fits a 4-state HMM on historical prices, then simulates <code>n_paths</code>
+      forward trajectories using the fitted Markov transition matrix. Returns a
+      price fan, expected risk multiplier per step, and terminal return statistics.
+    </p>
+  </div>
+
+  <h2>How it works</h2>
+  <div class="flow">
+    <div class="flow-step"><div class="flow-step-num">01</div><div class="flow-step-title">Fit HMM</div><div class="flow-step-sub">4-state vol + trend on historical prices</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-step-num">02</div><div class="flow-step-title">Kronecker T</div><div class="flow-step-sub">16×16 combined transition matrix T_vol ⊗ T_trend</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-step-num">03</div><div class="flow-step-title">Monte Carlo</div><div class="flow-step-sub">n_paths × horizon forward steps</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-step-num">04</div><div class="flow-step-title">Aggregate</div><div class="flow-step-sub">Price fan · VaR · regime occupancy</div></div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="endpoint-method m-post">POST</span>
+      <span class="endpoint-path">/simulate/{symbol}</span>
+      <span class="endpoint-summary">Monte Carlo regime transition simulation</span>
+    </div>
+    <div class="endpoint-body">
+      <h3>Request Body</h3>
+      <div class="param"><span class="param-name">prices</span><span class="param-type">float[]</span><span class="param-req">required</span><div class="param-desc">Min 81 price bars. Used to fit the HMM and calibrate per-regime return distributions.</div></div>
+      <div class="param"><span class="param-name">horizon</span><span class="param-type">int</span><span class="param-opt">optional</span><div class="param-desc">Forward bars to simulate.<div class="param-default">Default: 20 · Range: [1, 252]</div></div></div>
+      <div class="param"><span class="param-name">n_paths</span><span class="param-type">int</span><span class="param-opt">optional</span><div class="param-desc">Monte Carlo paths. More paths = tighter fan, slower response.<div class="param-default">Default: 500 · Range: [50, 5000]</div></div></div>
+      <div class="param"><span class="param-name">seed</span><span class="param-type">int</span><span class="param-opt">optional</span><div class="param-desc">Random seed for reproducible results.<div class="param-default">Default: 42</div></div></div>
+      <div class="param"><span class="param-name">current_price</span><span class="param-type">float</span><span class="param-opt">optional</span><div class="param-desc">Override starting price. Defaults to prices[-1].</div></div>
+
+      <h3>Response</h3>
+      <div class="param"><span class="param-name">price_p5/p25/median/p75/p95</span><span class="param-type">float[]</span><span class="param-opt">–</span><div class="param-desc">Price fan at each of the `horizon` forward steps.</div></div>
+      <div class="param"><span class="param-name">expected_risk_mult</span><span class="param-type">float[]</span><span class="param-opt">–</span><div class="param-desc">Mean risk multiplier across all paths at each step.</div></div>
+      <div class="param"><span class="param-name">return_mean/std/var95/cvar95</span><span class="param-type">float</span><span class="param-opt">–</span><div class="param-desc">Terminal return distribution statistics.</div></div>
+      <div class="param"><span class="param-name">terminal_regime_mode</span><span class="param-type">string</span><span class="param-opt">–</span><div class="param-desc">Most likely regime at end of simulation horizon.</div></div>
+      <div class="param"><span class="param-name">pct_paths_positive</span><span class="param-type">float</span><span class="param-opt">–</span><div class="param-desc">Fraction of paths with positive cumulative return at horizon.</div></div>
+      <div class="param"><span class="param-name">max_drawdown_mean</span><span class="param-type">float</span><span class="param-opt">–</span><div class="param-desc">Mean maximum drawdown across all simulated paths. Negative value.</div></div>
+      <div class="param"><span class="param-name">step_dominant_regime</span><span class="param-type">string[]</span><span class="param-opt">–</span><div class="param-desc">Most likely regime at each forward step.</div></div>
+
+      <h3>Example</h3>
+      <div class="code-label">json — response excerpt</div>
+      <pre><code>{
+  <span class="key">"current_regime"</span>:       <span class="str">"low_vol_bull"</span>,
+  <span class="key">"terminal_regime_mode"</span>: <span class="str">"med_low_vol_bull"</span>,
+  <span class="key">"price_median"</span>:         [<span class="num">513.1</span>, <span class="num">514.2</span>, ..., <span class="num">521.8</span>],
+  <span class="key">"price_p5"</span>:            [<span class="num">498.3</span>, <span class="num">495.1</span>, ..., <span class="num">489.2</span>],
+  <span class="key">"price_p95"</span>:           [<span class="num">527.4</span>, <span class="num">531.8</span>, ..., <span class="num">558.1</span>],
+  <span class="key">"return_mean"</span>:          <span class="num">0.0154</span>,
+  <span class="key">"return_var95"</span>:         <span class="num">0.0537</span>,
+  <span class="key">"pct_paths_positive"</span>:   <span class="num">0.635</span>,
+  <span class="key">"max_drawdown_mean"</span>:    <span class="num">-0.0377</span>
+}</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ PORTFOLIO ═══════════════════════════════════════ -->
+<div class="page" id="page-portfolio-overview">
+  <h1>Portfolio <span class="accent-word">View</span></h1>
+  <div class="hero">
+    <div class="hero-eyebrow">// GET /portfolio — services/portfolio_service.py</div>
+    <p class="hero-desc">
+      Aggregates regime state, risk metrics, and position sizes across all active
+      streaming sessions. Returns per-symbol breakdowns plus portfolio-level risk flags.
+    </p>
+  </div>
+
+  <div class="callout callout-info">
+    <div class="callout-icon">ℹ</div>
+    <div class="callout-body"><strong>Prerequisite:</strong> Symbols must be seeded via <code>POST /stream/seed</code> before appearing in the portfolio view.</div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="endpoint-method m-get">GET</span>
+      <span class="endpoint-path">/portfolio</span>
+      <span class="endpoint-summary">Aggregated multi-symbol regime + risk summary</span>
+    </div>
+    <div class="endpoint-body">
+      <h3>Query Parameters</h3>
+      <div class="param"><span class="param-name">symbols</span><span class="param-type">string</span><span class="param-opt">optional</span><div class="param-desc">Comma-separated symbol list. Omit to include all active sessions.</div></div>
+      <div class="param"><span class="param-name">kelly_fraction</span><span class="param-type">float</span><span class="param-opt">optional</span><div class="param-desc"><div class="param-default">Default: 0.5</div></div></div>
+      <div class="param"><span class="param-name">target_vol</span><span class="param-type">float</span><span class="param-opt">optional</span><div class="param-desc"><div class="param-default">Default: 0.15</div></div></div>
+
+      <h3>Response — risk flags</h3>
+      <div class="param"><span class="param-name">high_risk_count</span><span class="param-type">int</span><span class="param-opt">–</span><div class="param-desc">Number of symbols with risk_multiplier &lt; 0.5.</div></div>
+      <div class="param"><span class="param-name">concentration_flag</span><span class="param-type">bool</span><span class="param-opt">–</span><div class="param-desc">True if any symbol has recommended_f &gt; 40%.</div></div>
+      <div class="param"><span class="param-name">regime_divergence_flag</span><span class="param-type">bool</span><span class="param-opt">–</span><div class="param-desc">True when portfolio spans many different regime buckets (normalised vol_state entropy &gt; 0.75).</div></div>
+      <div class="param"><span class="param-name">active_alerts</span><span class="param-type">string[]</span><span class="param-opt">–</span><div class="param-desc">Symbols that recently underwent a regime change.</div></div>
+      <div class="param"><span class="param-name">portfolio_var95</span><span class="param-type">float</span><span class="param-opt">–</span><div class="param-desc">√(ΣVaR²) — portfolio VaR under independence assumption.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════ AUTH ══════════════════════════════════════════ -->
+<div class="page" id="page-auth-overview">
+  <h1>Auth / <span class="accent-word">JWT</span></h1>
+  <div class="hero">
+    <div class="hero-eyebrow">// auth/jwt_auth.py — routers/auth_router.py</div>
+    <p class="hero-desc">
+      HS256 JWT authentication with role-based access control.
+      Set <code>AUTH_ENABLED=false</code> to bypass in development.
+      Configure users via <code>AUTH_USERS</code> env var.
+    </p>
+  </div>
+
+  <h2>Configuration</h2>
+  <div class="code-label">environment variables</div>
+  <pre><code>JWT_SECRET_KEY=your-signing-secret        <span class="cmt"># required</span>
+JWT_EXPIRE_MINS=60                         <span class="cmt"># token lifetime (default 60)</span>
+AUTH_USERS=admin:pass:admin,viewer:p:viewer <span class="cmt"># user:pass:role CSV</span>
+API_KEYS=svc-key-1,svc-key-2              <span class="cmt"># service-to-service keys</span>
+AUTH_ENABLED=false                         <span class="cmt"># dev mode — disables all auth</span></code></pre>
+
+  <h2>Roles</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Role</th><th>HTTP endpoints</th><th>WebSocket</th></tr></thead>
+    <tbody>
+      <tr><td><code>admin</code></td><td>All (read + write + admin)</td><td>Full access</td></tr>
+      <tr><td><code>trader</code></td><td>Read + write (seed, tick, simulate)</td><td>Full access</td></tr>
+      <tr><td><code>viewer</code></td><td>Read-only (regime, portfolio, sse)</td><td>Subscribe only</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="endpoint-method m-post">POST</span><span class="endpoint-path">/auth/token</span><span class="endpoint-summary">Issue a JWT</span></div>
+    <div class="endpoint-body">
+      <p>OAuth2 password form (Content-Type: application/x-www-form-urlencoded). Fields: <code>username</code>, <code>password</code>.</p>
+      <div class="code-label">curl</div>
+      <pre><code>curl -X POST http://localhost:8000/auth/token   -d "username=trader1&password=pass123"</code></pre>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="endpoint-method m-get">GET</span><span class="endpoint-path">/auth/me</span><span class="endpoint-summary">Verify token + return user info</span></div>
+    <div class="endpoint-body">
+      <p>Pass the Bearer token to confirm it is valid and inspect role.</p>
+    </div>
+  </div>
+
+  <h2>Protecting endpoints</h2>
+  <div class="code-label">python — HTTP</div>
+  <pre><code><span class="kw">from</span> regime_platform.auth.jwt_auth <span class="kw">import</span> get_current_user, require_write
+
+<span class="cmt"># Read-only — any authenticated user</span>
+<span class="kw">@router</span>.get(<span class="str">"/endpoint"</span>)
+<span class="kw">async def</span> <span class="fn">handler</span>(user=Depends(get_current_user)):
+    ...
+
+<span class="cmt"># Write — trader or admin only</span>
+<span class="kw">@router</span>.post(<span class="str">"/write"</span>)
+<span class="kw">async def</span> <span class="fn">writer</span>(user=Depends(require_write)):
+    ...</code></pre>
+
+  <div class="code-label">javascript — WebSocket with token</div>
+  <pre><code><span class="cmt">// Pass JWT as query param</span>
+<span class="kw">const</span> ws = <span class="kw">new</span> <span class="fn">WebSocket</span>(<span class="str">`ws://localhost:8000/ws/SPY?token=${jwt}`</span>);
+
+<span class="cmt">// Or pass as API key</span>
+<span class="kw">const</span> ws2 = <span class="kw">new</span> <span class="fn">WebSocket</span>(<span class="str">`ws://localhost:8000/ws/SPY?api_key=svc-key-1`</span>);</code></pre>
+</div>
+
+<!-- ════════════════════════════ REDIS ═════════════════════════════════════════ -->
+<div class="page" id="page-redis-overview">
+  <h1>Redis <span class="accent-word">Persistence</span></h1>
+  <div class="hero">
+    <div class="hero-eyebrow">// services/redis_persistence.py — REDIS_URL env var</div>
+    <p class="hero-desc">
+      Optional Redis Streams persistence layer. When <code>REDIS_URL</code> is set,
+      price buffers survive process restarts and can be shared across multiple
+      uvicorn workers. Without it, the system operates entirely in-memory with
+      no performance overhead.
+    </p>
+  </div>
+
+  <div class="callout callout-tip">
+    <div class="callout-icon">✦</div>
+    <div class="callout-body"><strong>Zero configuration overhead.</strong> If <code>REDIS_URL</code> is not set, all <code>RedisPersistence</code> methods are no-ops. No code changes needed — just add the env var to enable.</div>
+  </div>
+
+  <h2>How it works</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Event</th><th>Redis operation</th><th>Key pattern</th></tr></thead>
+    <tbody>
+      <tr><td>App startup</td><td><code>XREVRANGE</code> last N entries → hydrate buffer</td><td><code>regime:prices:{symbol}</code></td></tr>
+      <tr><td>Each tick</td><td><code>XADD</code> with approximate MAXLEN cap</td><td><code>regime:prices:{symbol}</code></td></tr>
+      <tr><td>Session seed</td><td><code>HSET</code> session config</td><td><code>regime:meta:{symbol}</code></td></tr>
+      <tr><td>Session remove</td><td><code>DEL</code> meta (price stream preserved by default)</td><td><code>regime:meta:{symbol}</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Startup restore flow</h2>
+  <div class="code-label">main_v3.py lifespan</div>
+  <pre><code><span class="cmt"># On startup, main_v3.py automatically:</span>
+<span class="num">1</span>. Lists all symbols with persisted streams in Redis
+<span class="num">2</span>. Loads session config from Redis meta hash
+<span class="num">3</span>. Restores price buffer via XREVRANGE
+<span class="num">4</span>. Re-fits HMM if ≥ 81 bars are available
+<span class="num">5</span>. Sessions are immediately ready for incoming ticks</code></pre>
+
+  <h2>Error policy</h2>
+  <p>All Redis operations are wrapped in try/except. A Redis failure never raises in the tick path — it logs a warning at DEBUG level and the system continues with in-memory state. Redis is persistence, not availability.</p>
+
+  <h2>Multi-worker deployment</h2>
+  <div class="callout callout-warning">
+    <div class="callout-icon">⚠</div>
+    <div class="callout-body">
+      <strong>With Redis enabled</strong>, multiple uvicorn workers can share price history — each worker restores the same buffer on startup. However, the in-memory <code>SessionRegistry</code> (and therefore WebSocket subscribers) is still per-worker. For true multi-worker real-time streaming, use a single worker or add a pub/sub layer (e.g. Redis Pub/Sub for tick fan-out).
+    </div>
+  </div>
+</div>
+
+<!-- ═════════════════════════ GPU HMM ══════════════════════════════════════════ -->
+<div class="page" id="page-gpu-overview">
+  <h1>GPU <span class="accent-word">HMM Engine</span></h1>
+  <div class="hero">
+    <div class="hero-eyebrow">// core/gpu_engine.py — pomegranate PyTorch backend</div>
+    <p class="hero-desc">
+      Transparent GPU acceleration for HMM fitting. When pomegranate ≥ 1.0 and a
+      CUDA or MPS device are available, all HMM operations run on GPU — typically
+      10–50× faster on large datasets. Falls back to hmmlearn on CPU with zero
+      code changes.
+    </p>
+  </div>
+
+  <h2>Auto-selection factory</h2>
+  <div class="code-label">python</div>
+  <pre><code><span class="kw">from</span> regime_platform.core.gpu_engine <span class="kw">import</span> create_regime_hmm
+
+<span class="cmt"># Auto-selects GpuRegimeHMM (pomegranate) or RegimeHMM (hmmlearn)</span>
+model = <span class="fn">create_regime_hmm</span>()        <span class="cmt"># GPU if available</span>
+model = <span class="fn">create_regime_hmm</span>(force_cpu=<span class="kw">True</span>)  <span class="cmt"># always hmmlearn</span>
+
+<span class="cmt"># Same interface regardless of backend</span>
+model.<span class="fn">fit</span>(prices)
+snap = model.<span class="fn">predict</span>(prices)
+<span class="fn">print</span>(snap.regime_label, snap.risk_multiplier)</code></pre>
+
+  <h2>Install for GPU support</h2>
+  <div class="code-label">bash</div>
+  <pre><code><span class="cmt"># NVIDIA CUDA</span>
+pip install pomegranate torch
+
+<span class="cmt"># Apple Silicon (MPS)</span>
+pip install pomegranate torch   <span class="cmt"># MPS detected automatically</span></code></pre>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="endpoint-method m-get">GET</span><span class="endpoint-path">/gpu/capabilities</span><span class="endpoint-summary">Hardware + backend report</span></div>
+    <div class="endpoint-body">
+      <div class="code-label">response</div>
+      <pre><code>{
+  <span class="key">"pomegranate_installed"</span>: <span class="kw">false</span>,
+  <span class="key">"cuda_available"</span>:        <span class="kw">false</span>,
+  <span class="key">"mps_available"</span>:         <span class="kw">false</span>,
+  <span class="key">"active_device"</span>:         <span class="str">"cpu"</span>,
+  <span class="key">"hmm_backend"</span>:           <span class="str">"RegimeHMM (hmmlearn)"</span>
+}</code></pre>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="endpoint-method m-post">POST</span><span class="endpoint-path">/gpu/benchmark</span><span class="endpoint-summary">Fit + predict latency benchmark</span></div>
+    <div class="endpoint-body">
+      <div class="param"><span class="param-name">n_bars</span><span class="param-type">int</span><span class="param-opt">optional</span><div class="param-desc">Synthetic price series length. <div class="param-default">Default: 500 · Range: [81, 50000]</div></div></div>
+      <div class="param"><span class="param-name">n_iterations</span><span class="param-type">int</span><span class="param-opt">optional</span><div class="param-desc">Repetitions for mean latency. <div class="param-default">Default: 3</div></div></div>
+      <div class="param"><span class="param-name">force_cpu</span><span class="param-type">bool</span><span class="param-opt">optional</span><div class="param-desc">Benchmark hmmlearn CPU baseline. Useful for measuring GPU speedup. <div class="param-default">Default: false</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════ LIVE FEEDS ════════════════════════════════════════ -->
+<div class="page" id="page-feeds-overview">
+  <h1>Live <span class="accent-word">Feed Adapters</span></h1>
+  <div class="hero">
+    <div class="hero-eyebrow">// adapters/feed_adapters.py — Alpaca · Binance · Interactive Brokers</div>
+    <p class="hero-desc">
+      Async OHLCV feed adapters that stream live bars directly into seeded
+      <code>StreamSession</code>s. Each adapter reconnects automatically on
+      disconnect with exponential backoff.
+    </p>
+  </div>
+
+  <h2>Workflow</h2>
+  <div class="flow">
+    <div class="flow-step"><div class="flow-step-num">01</div><div class="flow-step-title">Seed</div><div class="flow-step-sub">POST /stream/seed per symbol</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-step-num">02</div><div class="flow-step-title">Start Feed</div><div class="flow-step-sub">POST /feeds/start with adapter config</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-step-num">03</div><div class="flow-step-title">Auto-route</div><div class="flow-step-sub">FeedManager → session.tick(close, ts)</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-step-num">04</div><div class="flow-step-title">Subscribe</div><div class="flow-step-sub">WS /ws/SPY or SSE /sse/SPY</div></div>
+  </div>
+
+  <h2>Supported adapters</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Source</th><th>Asset classes</th><th>Install</th><th>Auth env vars</th></tr></thead>
+    <tbody>
+      <tr><td><code>alpaca</code></td><td>US equities, crypto</td><td><code>pip install alpaca-py</code></td><td><code>ALPACA_API_KEY, ALPACA_SECRET_KEY</code></td></tr>
+      <tr><td><code>binance</code></td><td>Crypto spot (all pairs)</td><td><code>pip install websockets</code></td><td>None (public stream)</td></tr>
+      <tr><td><code>ib</code></td><td>Equities, futures, FX, options</td><td><code>pip install ib_async</code></td><td><code>IB_HOST, IB_PORT, IB_CLIENT_ID</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="endpoint-method m-post">POST</span><span class="endpoint-path">/feeds/start</span><span class="endpoint-summary">Start live feed adapters</span></div>
+    <div class="endpoint-body">
+      <div class="code-label">json — request body (array of feed configs)</div>
+      <pre><code>[
+  { <span class="key">"source"</span>: <span class="str">"alpaca"</span>,  <span class="key">"symbols"</span>: [<span class="str">"SPY"</span>, <span class="str">"QQQ"</span>], <span class="key">"bar_size"</span>: <span class="str">"1Min"</span> },
+  { <span class="key">"source"</span>: <span class="str">"binance"</span>, <span class="key">"symbols"</span>: [<span class="str">"BTCUSDT"</span>],       <span class="key">"bar_size"</span>: <span class="str">"1m"</span>   }
+]</code></pre>
+      <div class="callout callout-warning"><div class="callout-icon">⚠</div><div class="callout-body">Symbols must be seeded via <code>POST /stream/seed</code> before starting feeds. Bars for unseeded symbols are silently dropped.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════ CORRELATION ═══════════════════════════════════════ -->
+<div class="page" id="page-corr-overview">
+  <h1>Correlation <span class="accent-word">Regime</span></h1>
+  <div class="hero">
+    <div class="hero-eyebrow">// core/correlation_regime.py — POST /correlation/detect</div>
+    <p class="hero-desc">
+      Detects portfolio-level correlation regimes using dynamic conditional correlation
+      (DCC). Catches the structural shift where diversification collapses — something
+      per-asset HMMs miss entirely.
+    </p>
+  </div>
+
+  <h2>Correlation regime labels</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Label</th><th>Mean |ρ|</th><th>Multiplier</th><th>Interpretation</th></tr></thead>
+    <tbody>
+      <tr><td><code>low_corr</code></td><td>&lt; 0.20</td><td>1.00×</td><td>Normal market — diversification working</td></tr>
+      <tr><td><code>mid_corr</code></td><td>0.20–0.50</td><td>0.85×</td><td>Moderate comovement — mild caution</td></tr>
+      <tr><td><code>high_corr</code></td><td>0.50–0.75</td><td>0.60×</td><td>Elevated stress — diversification eroding</td></tr>
+      <tr><td><code>crisis</code></td><td>&gt; 0.75</td><td>0.35×</td><td>Crash regime — all assets moving together</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="endpoint-method m-post">POST</span><span class="endpoint-path">/correlation/detect</span><span class="endpoint-summary">Detect portfolio correlation regime</span></div>
+    <div class="endpoint-body">
+      <div class="param"><span class="param-name">symbols</span><span class="param-type">string[]</span><span class="param-req">required</span><div class="param-desc">Asset labels. Min 2, max 50.</div></div>
+      <div class="param"><span class="param-name">returns_matrix</span><span class="param-type">float[][]</span><span class="param-req">required</span><div class="param-desc">(n_bars × n_assets) log-return matrix. Outer list = bars.</div></div>
+      <div class="param"><span class="param-name">window</span><span class="param-type">int</span><span class="param-opt">optional</span><div class="param-desc">Rolling correlation window. <div class="param-default">Default: 60 · Range: [20, 252]</div></div></div>
+      <h3>Key response fields</h3>
+      <div class="param"><span class="param-name">corr_regime</span><span class="param-type">string</span><span class="param-opt">–</span><div class="param-desc">Dominant correlation regime label.</div></div>
+      <div class="param"><span class="param-name">blended_risk_multiplier</span><span class="param-type">float</span><span class="param-opt">–</span><div class="param-desc">mean(per-asset mult) × corr_risk_multiplier — the portfolio-level risk scalar.</div></div>
+      <div class="param"><span class="param-name">mean_abs_correlation</span><span class="param-type">float</span><span class="param-opt">–</span><div class="param-desc">Current mean |ρ| across all asset pairs.</div></div>
+      <div class="param"><span class="param-name">correlation_matrix</span><span class="param-type">float[][]</span><span class="param-opt">–</span><div class="param-desc">n_assets × n_assets Pearson correlation matrix at last bar.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════ OPTIMISER ═════════════════════════════════════════ -->
+<div class="page" id="page-opt-overview">
+  <h1>Portfolio <span class="accent-word">Optimisation</span></h1>
+  <div class="hero">
+    <div class="hero-eyebrow">// core/portfolio_optimiser.py — POST /optimise/full</div>
+    <p class="hero-desc">
+      Drawdown-controlled regime-aware maximum Sharpe optimisation. Three regime
+      layers applied simultaneously: regime-adjusted expected returns, per-asset
+      weight bounds, and correlation-regime gross exposure scaling.
+    </p>
+  </div>
+
+  <h2>Three regime layers</h2>
+  <div class="pipeline-layer"><div class="pipeline-n">01</div><div class="pipeline-name">Adjusted μ</div><div class="pipeline-fn">μ_adj = μ_raw × risk_multiplier</div><div class="pipeline-output">Bull regimes get full μ; bear/high-vol penalised</div></div>
+  <div class="pipeline-layer"><div class="pipeline-n">02</div><div class="pipeline-name">Weight bounds</div><div class="pipeline-fn">ub_i = max_weight × interp(mult, [0.10,1.75], [0.25,1.00])</div><div class="pipeline-output">Tighter per-asset ceiling in high-risk regimes</div></div>
+  <div class="pipeline-layer"><div class="pipeline-n">03</div><div class="pipeline-name">Exposure scalar</div><div class="pipeline-fn">Σw = exposure(corr_regime)</div><div class="pipeline-output">Crisis → 50% gross exposure; low_corr → 100%</div></div>
+
+  <h2>Exposure by correlation regime</h2>
+  <div class="regime-matrix" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
+    <div class="regime-cell header">low_corr</div><div class="regime-cell header">mid_corr</div><div class="regime-cell header">high_corr</div><div class="regime-cell header">crisis</div>
+    <div class="regime-cell rm-high">1.00×</div><div class="regime-cell rm-mid">0.90×</div><div class="regime-cell rm-low">0.70×</div><div class="regime-cell rm-low">0.50×</div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="endpoint-method m-post">POST</span><span class="endpoint-path">/optimise/full</span><span class="endpoint-summary">One-shot: correlation detect + optimise</span></div>
+    <div class="endpoint-body">
+      <div class="param"><span class="param-name">max_dd_limit</span><span class="param-type">float</span><span class="param-opt">optional</span><div class="param-desc">Maximum acceptable expected drawdown. <div class="param-default">Default: 0.20 (20%)</div></div></div>
+      <div class="param"><span class="param-name">max_weight</span><span class="param-type">float</span><span class="param-opt">optional</span><div class="param-desc">Default single-asset weight ceiling. <div class="param-default">Default: 0.40 (40%)</div></div></div>
+      <div class="param"><span class="param-name">risk_free_rate</span><span class="param-type">float</span><span class="param-opt">optional</span><div class="param-desc">Annualised risk-free rate for Sharpe. <div class="param-default">Default: 0.04</div></div></div>
+      <h3>Response — optimisation</h3>
+      <div class="param"><span class="param-name">weights</span><span class="param-type">float[]</span><span class="param-opt">–</span><div class="param-desc">Optimised portfolio weights (sum = regime_exposure).</div></div>
+      <div class="param"><span class="param-name">regime_adj_weights</span><span class="param-type">float[]</span><span class="param-opt">–</span><div class="param-desc">Weights further scaled by per-asset risk multiplier.</div></div>
+      <div class="param"><span class="param-name">dd_constraint_met</span><span class="param-type">bool</span><span class="param-opt">–</span><div class="param-desc">Whether the Cornish-Fisher CVaR proxy ≤ max_dd_limit.</div></div>
+      <div class="param"><span class="param-name">regime_exposure</span><span class="param-type">float</span><span class="param-opt">–</span><div class="param-desc">Total gross weight sum — reduced in crisis regimes.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ MASANIELLO SIZER ════════════════════════════════════ -->
+<div class="page" id="page-masaniello">
+  <h1>Dynamic <span class="accent-word">Masaniello</span> Sizer</h1>
+  <div class="hero">
+    <div class="hero-eyebrow">// core/position_sizer.py — DynamicMasanielloSizer</div>
+    <p class="hero-desc">
+      Stateful per-trade position sizing combining Masaniello batch progress,
+      model quality, drawdown protection, and volatility scaling into a single
+      formula. Fully integrated with <code>RegimeSnapshot</code>.
+    </p>
+  </div>
+
+  <h2>The Formula</h2>
+  <pre><code>f_i = β × (0.5 + M_i) × Q_i × DD_i × V_i</code></pre>
+
+  <div class="table-wrap"><table>
+    <thead><tr><th>Factor</th><th>Symbol</th><th>Formula</th><th>Clamp</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>Base risk</td><td>β</td><td><code>SizingConfig.base_risk</code> (default 0.50%)</td><td>—</td><td>Risk fraction anchor</td></tr>
+      <tr><td>Masaniello</td><td>M_i</td><td><code>(W − w) / (N − i + 1)</code></td><td>[0.0, 1.5]</td><td>Urgency: wins needed ÷ trades left</td></tr>
+      <tr><td>Quality</td><td>Q_i</td><td><code>prob_factor × regime_factor × conf_factor</code></td><td>product of clamps</td><td>Combined edge × regime × confidence gate</td></tr>
+      <tr><td>Drawdown</td><td>DD_i</td><td><code>clip(1 − dd / max_dd, 0.25, 1.0)</code></td><td>[0.25, 1.0]</td><td>Reduce size; never zero (floor 0.25)</td></tr>
+      <tr><td>Volatility</td><td>V_i</td><td><code>clip(ATR_base / ATR_current, 0.5, 1.5)</code></td><td>[0.5, 1.5]</td><td>Inverted ATR — high vol shrinks size</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="callout callout-info">
+    <div class="callout-icon">ℹ</div>
+    <div class="callout-body">
+      <strong>Why (0.5 + M_i)?</strong> This term guarantees a minimum sizing
+      multiplier of 0.5× base risk even when M_i = 0 (target already met, or first
+      trade in a relaxed batch). Position never collapses to zero from the Masaniello
+      factor alone.
+    </div>
+  </div>
+
+  <h2>Q_i — Quality Factor detail</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Sub-factor</th><th>Formula</th><th>Clamp</th><th>Source</th></tr></thead>
+    <tbody>
+      <tr><td>prob_factor</td><td><code>clip((p_win − min_prob) / 0.10, 0.0, 1.5)</code></td><td>[0.0, 1.5]</td><td>Estimated win probability</td></tr>
+      <tr><td>regime_factor</td><td><code>clip(regime_quality, 0.0, 1.5)</code></td><td>[0.0, 1.5]</td><td><code>RegimeSnapshot.risk_multiplier</code></td></tr>
+      <tr><td>conf_factor</td><td><code>clip(state_confidence, 0.0, 1.0)</code></td><td>[0.0, 1.0]</td><td><code>RegimeSnapshot.confidence</code></td></tr>
+    </tbody>
+  </table></div>
+  <p>Maximum Q_i = 1.5 × 1.5 × 1.0 = <strong>2.25</strong> (all factors maxed). Q_i = 0 when any sub-factor is 0 — the formula acts as a quality gate before any risk is allocated.</p>
+
+  <h2>Pre-flight Gates</h2>
+  <p>Checked in priority order before the formula runs. Each gate fires with a specific <code>.reason</code> string:</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>#</th><th>Gate</th><th>Condition</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Equity</td><td>equity &gt; 0</td></tr>
+      <tr><td>2</td><td>Stop distance</td><td>stop_distance_price &gt; 0</td></tr>
+      <tr><td>3</td><td>Point value</td><td>point_value &gt; 0</td></tr>
+      <tr><td>4</td><td>Regime floor</td><td>regime_quality ≥ regime_floor (default 0.50)</td></tr>
+      <tr><td>5</td><td>Min probability</td><td>p_win ≥ min_prob (default 0.50)</td></tr>
+      <tr><td>6</td><td>Min R/R</td><td>reward_risk ≥ min_rr (default 2.50)</td></tr>
+      <tr><td>7</td><td>Batch halt</td><td>batch not already halted</td></tr>
+      <tr><td>8</td><td>Drawdown halt</td><td>batch.drawdown &lt; batch_halt_dd (default 5%)</td></tr>
+      <tr><td>9</td><td>Edge</td><td>E = p·R − (1−p) &gt; 0</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Usage</h2>
+  <div class="code-label">python — with RegimeSnapshot</div>
+  <pre><code><span class="kw">from</span> regime_platform.core.position_sizer <span class="kw">import</span> (
+    DynamicMasanielloSizer, SizingConfig, BatchState
+)
+
+cfg   = SizingConfig(base_risk=<span class="num">0.005</span>, max_drawdown=<span class="num">0.10</span>, batch_size=<span class="num">5</span>, target_wins=<span class="num">3</span>)
+sizer = DynamicMasanielloSizer(cfg)
+sizer.batch.peak_equity = equity
+
+<span class="cmt"># Size one trade from a live RegimeSnapshot</span>
+result = sizer.<span class="fn">size_from_snapshot</span>(
+    snap=snap,                     <span class="cmt"># from RegimeHMM.predict()</span>
+    equity=<span class="num">100_000</span>,
+    stop_distance_price=<span class="num">2.50</span>,    <span class="cmt"># stop in price units</span>
+    point_value=<span class="num">50.0</span>,            <span class="cmt"># $ per point</span>
+    p_win=<span class="num">0.62</span>,
+    reward_risk=<span class="num">2.5</span>,
+    atr_baseline=<span class="num">12.0</span>,
+    atr_current=<span class="num">10.0</span>,
+)
+<span class="fn">print</span>(result.<span class="fn">summary</span>())
+<span class="cmt"># [✓ ALLOWED]  f=0.550%  $550  units=5.50  contracts=5  ...</span>
+
+<span class="cmt"># After trade resolves, record outcome</span>
+sizer.batch.<span class="fn">record</span>(result, outcome=<span class="kw">True</span>, pnl=<span class="num">625.0</span>)
+
+<span class="cmt"># After N trades, reset for next batch</span>
+sizer.batch.<span class="fn">reset</span>(equity=<span class="num">100_625</span>)</code></pre>
+
+  <h2>Monte Carlo Validation</h2>
+  <div class="code-label">python</div>
+  <pre><code><span class="kw">from</span> regime_platform.core.position_sizer <span class="kw">import</span> monte_carlo_batch
+
+stats = <span class="fn">monte_carlo_batch</span>(sizer, base_context, n_simulations=<span class="num">2000</span>, seed=<span class="num">42</span>)
+<span class="fn">print</span>(stats)
+<span class="cmt"># {
+#   "p_target_hit": 0.695,   # 69.5% of batches hit target_wins
+#   "p_halt": 0.000,         # 0% triggered drawdown halt
+#   "mean_pnl": 1759,
+#   "median_pnl": 1312,
+#   "p10_pnl": -186,
+#   "p90_pnl": 4021,
+#   "mean_max_dd": 0.0031,
+#   "sharpe_approx": 1.377
+# }</span></code></pre>
 </div>
 
 </main>

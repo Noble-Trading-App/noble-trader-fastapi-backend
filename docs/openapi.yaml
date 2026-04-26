@@ -2,7 +2,7 @@ openapi: "3.1.0"
 
 info:
   title: Dynamic Regime Risk Management Platform
-  version: "2.0.0"
+  version: "3.1.0"
   description: |
     A production-grade FastAPI service for quantitative trading risk management.
     Detects market regimes with Hidden Markov Models, gates position sizes via
@@ -34,7 +34,6 @@ tags:
 
 # ─────────────────────────────────────────────────────────────────────────────
 paths:
-
   /health:
     get:
       tags: [Health]
@@ -65,7 +64,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: { $ref: '#/components/schemas/FullAnalysisRequest' }
+            schema: { $ref: "#/components/schemas/FullAnalysisRequest" }
             example:
               symbol: SPY
               prices: [450.1, 451.3, 449.8, 452.0]
@@ -77,9 +76,9 @@ paths:
           description: Full analysis result
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/FullAnalysisResponse' }
+              schema: { $ref: "#/components/schemas/FullAnalysisResponse" }
         "422":
-          $ref: '#/components/responses/ValidationError'
+          $ref: "#/components/responses/ValidationError"
 
   /regime/detect:
     post:
@@ -89,15 +88,15 @@ paths:
         required: true
         content:
           application/json:
-            schema: { $ref: '#/components/schemas/PricePayload' }
+            schema: { $ref: "#/components/schemas/PricePayload" }
       responses:
         "200":
           description: Regime classification result
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/RegimeResponse' }
+              schema: { $ref: "#/components/schemas/RegimeResponse" }
         "422":
-          $ref: '#/components/responses/ValidationError'
+          $ref: "#/components/responses/ValidationError"
 
   /size/kelly:
     post:
@@ -107,15 +106,15 @@ paths:
         required: true
         content:
           application/json:
-            schema: { $ref: '#/components/schemas/SizeRequest' }
+            schema: { $ref: "#/components/schemas/SizeRequest" }
       responses:
         "200":
           description: Kelly sizing result
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/SizeResponse' }
+              schema: { $ref: "#/components/schemas/SizeResponse" }
         "422":
-          $ref: '#/components/responses/ValidationError'
+          $ref: "#/components/responses/ValidationError"
 
   /risk/analyse:
     post:
@@ -125,15 +124,15 @@ paths:
         required: true
         content:
           application/json:
-            schema: { $ref: '#/components/schemas/RiskRequest' }
+            schema: { $ref: "#/components/schemas/RiskRequest" }
       responses:
         "200":
           description: Risk analysis result
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/RiskResponse' }
+              schema: { $ref: "#/components/schemas/RiskResponse" }
         "422":
-          $ref: '#/components/responses/ValidationError'
+          $ref: "#/components/responses/ValidationError"
 
   # ── STREAMING REST ────────────────────────────────────────────────────────
 
@@ -145,15 +144,15 @@ paths:
         required: true
         content:
           application/json:
-            schema: { $ref: '#/components/schemas/SeedRequest' }
+            schema: { $ref: "#/components/schemas/SeedRequest" }
       responses:
         "200":
           description: Session created and seeded
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/SessionStatus' }
+              schema: { $ref: "#/components/schemas/SessionStatus" }
         "422":
-          $ref: '#/components/responses/ValidationError'
+          $ref: "#/components/responses/ValidationError"
 
   /stream/tick:
     post:
@@ -163,7 +162,7 @@ paths:
         required: true
         content:
           application/json:
-            schema: { $ref: '#/components/schemas/TickIngest' }
+            schema: { $ref: "#/components/schemas/TickIngest" }
       responses:
         "200":
           description: Tick snapshot or buffering stub
@@ -171,10 +170,10 @@ paths:
             application/json:
               schema:
                 oneOf:
-                  - $ref: '#/components/schemas/TickResponse'
-                  - $ref: '#/components/schemas/BufferingStub'
+                  - $ref: "#/components/schemas/TickResponse"
+                  - $ref: "#/components/schemas/BufferingStub"
         "404":
-          $ref: '#/components/responses/NotFound'
+          $ref: "#/components/responses/NotFound"
 
   /stream/ticks:
     post:
@@ -202,10 +201,10 @@ paths:
                 type: array
                 items:
                   oneOf:
-                    - $ref: '#/components/schemas/TickResponse'
-                    - $ref: '#/components/schemas/BufferingStub'
+                    - $ref: "#/components/schemas/TickResponse"
+                    - $ref: "#/components/schemas/BufferingStub"
         "404":
-          $ref: '#/components/responses/NotFound'
+          $ref: "#/components/responses/NotFound"
 
   /stream/sessions:
     get:
@@ -219,7 +218,7 @@ paths:
               schema:
                 type: object
                 additionalProperties:
-                  $ref: '#/components/schemas/SessionStats'
+                  $ref: "#/components/schemas/SessionStats"
 
   /stream/session/{symbol}:
     get:
@@ -234,9 +233,9 @@ paths:
         "200":
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/SessionStatus' }
+              schema: { $ref: "#/components/schemas/SessionStatus" }
         "404":
-          $ref: '#/components/responses/NotFound'
+          $ref: "#/components/responses/NotFound"
     delete:
       tags: [Live Stream]
       summary: Remove a streaming session
@@ -284,7 +283,7 @@ paths:
                   Each `data:` line is a JSON-serialised TickResponse.
                   First event: `{"type": "connected", "symbol": "SPY"}`
         "404":
-          $ref: '#/components/responses/NotFound'
+          $ref: "#/components/responses/NotFound"
 
   /sse/alerts:
     get:
@@ -308,7 +307,6 @@ paths:
 
 # ─────────────────────────────────────────────────────────────────────────────
 components:
-
   responses:
     ValidationError:
       description: Request validation failed
@@ -324,8 +322,8 @@ components:
                     items:
                       type: object
                       properties:
-                        loc:  { type: array }
-                        msg:  { type: string }
+                        loc: { type: array }
+                        msg: { type: string }
                         type: { type: string }
 
     NotFound:
@@ -338,7 +336,6 @@ components:
               detail: { type: string }
 
   schemas:
-
     # ── Shared ─────────────────────────────────────────────────────────────
 
     PricePayload:
@@ -359,7 +356,7 @@ components:
 
     FullAnalysisRequest:
       allOf:
-        - $ref: '#/components/schemas/PricePayload'
+        - $ref: "#/components/schemas/PricePayload"
         - type: object
           properties:
             kelly_fraction:
@@ -380,7 +377,7 @@ components:
 
     SizeRequest:
       allOf:
-        - $ref: '#/components/schemas/PricePayload'
+        - $ref: "#/components/schemas/PricePayload"
         - type: object
           properties:
             returns:
@@ -404,7 +401,7 @@ components:
 
     RiskRequest:
       allOf:
-        - $ref: '#/components/schemas/SizeRequest'
+        - $ref: "#/components/schemas/SizeRequest"
         - type: object
           properties:
             base_risk_limit:
@@ -418,40 +415,41 @@ components:
     RegimeResponse:
       type: object
       properties:
-        symbol:          { type: string }
+        symbol: { type: string }
         vol_probs:
           type: object
           properties:
-            low:    { type: number }
+            low: { type: number }
             medium: { type: number }
-            high:   { type: number }
+            high: { type: number }
         trend_probs:
           type: object
           properties:
-            bear:    { type: number }
+            bear: { type: number }
             neutral: { type: number }
-            bull:    { type: number }
-        vol_state:       { type: string, enum: [low, med_low, med_high, high] }
-        trend_state:     { type: string, enum: [strong_bear, bear, bull, strong_bull] }
-        regime_label:    { type: string, example: low_vol_bull }
-        confidence:      { type: number, minimum: 0, maximum: 1 }
+            bull: { type: number }
+        vol_state: { type: string, enum: [low, med_low, med_high, high] }
+        trend_state:
+          { type: string, enum: [strong_bear, bear, bull, strong_bull] }
+        regime_label: { type: string, example: low_vol_bull }
+        confidence: { type: number, minimum: 0, maximum: 1 }
         risk_multiplier: { type: number, minimum: 0.10, maximum: 1.75 }
-        n_bars_fitted:   { type: integer }
+        n_bars_fitted: { type: integer }
 
     SizeResponse:
       type: object
       properties:
-        symbol:            { type: string }
-        full_kelly_f:      { type: number }
-        fractional_f:      { type: number }
-        vol_scaled_f:      { type: number }
-        regime_gated_f:    { type: number }
-        recommended_f:     { type: number, minimum: 0, maximum: 1 }
-        kelly_edge:        { type: number }
-        sharpe_ratio:      { type: number }
-        regime_label:      { type: string }
+        symbol: { type: string }
+        full_kelly_f: { type: number }
+        fractional_f: { type: number }
+        vol_scaled_f: { type: number }
+        regime_gated_f: { type: number }
+        recommended_f: { type: number, minimum: 0, maximum: 1 }
+        kelly_edge: { type: number }
+        sharpe_ratio: { type: number }
+        regime_label: { type: string }
         regime_multiplier: { type: number }
-        fraction_type:     { type: string, example: "50% Kelly" }
+        fraction_type: { type: string, example: "50% Kelly" }
         notes:
           type: array
           items: { type: string }
@@ -459,21 +457,21 @@ components:
     RiskResponse:
       type: object
       properties:
-        symbol:           { type: string }
-        recommended_f:    { type: number }
-        var_95:           { type: number }
-        var_99:           { type: number }
-        cvar_95:          { type: number }
-        cvar_99:          { type: number }
-        max_drawdown:     { type: number }
-        annual_vol:       { type: number }
-        annual_return:    { type: number }
-        calmar_ratio:     { type: number }
-        sortino_ratio:    { type: number }
-        regime_label:     { type: string }
-        regime_max_loss:  { type: number }
-        suggested_stop:   { type: number }
-        suggested_tp:     { type: number }
+        symbol: { type: string }
+        recommended_f: { type: number }
+        var_95: { type: number }
+        var_99: { type: number }
+        cvar_95: { type: number }
+        cvar_99: { type: number }
+        max_drawdown: { type: number }
+        annual_vol: { type: number }
+        annual_return: { type: number }
+        calmar_ratio: { type: number }
+        sortino_ratio: { type: number }
+        regime_label: { type: string }
+        regime_max_loss: { type: number }
+        suggested_stop: { type: number }
+        suggested_tp: { type: number }
         risk_budget_used: { type: number }
         notes:
           type: array
@@ -482,10 +480,10 @@ components:
     FullAnalysisResponse:
       type: object
       properties:
-        symbol:  { type: string }
-        regime:  { $ref: '#/components/schemas/RegimeResponse' }
-        sizing:  { $ref: '#/components/schemas/SizeResponse' }
-        risk:    { $ref: '#/components/schemas/RiskResponse' }
+        symbol: { type: string }
+        regime: { $ref: "#/components/schemas/RegimeResponse" }
+        sizing: { $ref: "#/components/schemas/SizeResponse" }
+        risk: { $ref: "#/components/schemas/RiskResponse" }
 
     # ── Streaming requests ──────────────────────────────────────────────────
 
@@ -493,7 +491,7 @@ components:
       type: object
       required: [symbol, prices]
       properties:
-        symbol:           { type: string }
+        symbol: { type: string }
         prices:
           type: array
           items: { type: number, exclusiveMinimum: 0 }
@@ -529,80 +527,81 @@ components:
       required: [symbol, price]
       properties:
         symbol: { type: string }
-        price:  { type: number, exclusiveMinimum: 0 }
-        ts:     { type: number, nullable: true, description: Unix timestamp }
+        price: { type: number, exclusiveMinimum: 0 }
+        ts: { type: number, nullable: true, description: Unix timestamp }
 
     # ── Streaming responses ─────────────────────────────────────────────────
 
     TickResponse:
       type: object
       properties:
-        symbol:           { type: string }
-        ts:               { type: number }
-        price:            { type: number }
-        n_bars:           { type: integer }
-        regime_label:     { type: string }
-        vol_state:        { type: string, enum: [low, med_low, med_high, high] }
-        trend_state:      { type: string, enum: [strong_bear, bear, bull, strong_bull] }
+        symbol: { type: string }
+        ts: { type: number }
+        price: { type: number }
+        n_bars: { type: integer }
+        regime_label: { type: string }
+        vol_state: { type: string, enum: [low, med_low, med_high, high] }
+        trend_state:
+          { type: string, enum: [strong_bear, bear, bull, strong_bull] }
         vol_probs:
           type: object
           properties:
-            low:    { type: number }
+            low: { type: number }
             medium: { type: number }
-            high:   { type: number }
+            high: { type: number }
         trend_probs:
           type: object
           properties:
-            bear:    { type: number }
+            bear: { type: number }
             neutral: { type: number }
-            bull:    { type: number }
-        confidence:       { type: number }
-        risk_multiplier:  { type: number }
-        recommended_f:    { type: number }
-        sharpe_ratio:     { type: number }
-        var_95:           { type: number }
-        cvar_95:          { type: number }
-        suggested_stop:   { type: number }
-        suggested_tp:     { type: number }
-        regime_changed:   { type: boolean }
-        alert:            { type: string, nullable: true }
-        refit_count:      { type: integer }
+            bull: { type: number }
+        confidence: { type: number }
+        risk_multiplier: { type: number }
+        recommended_f: { type: number }
+        sharpe_ratio: { type: number }
+        var_95: { type: number }
+        cvar_95: { type: number }
+        suggested_stop: { type: number }
+        suggested_tp: { type: number }
+        regime_changed: { type: boolean }
+        alert: { type: string, nullable: true }
+        refit_count: { type: integer }
 
     BufferingStub:
       type: object
       properties:
-        status:  { type: string, example: buffering }
-        n_bars:  { type: integer }
+        status: { type: string, example: buffering }
+        n_bars: { type: integer }
 
     SessionStatus:
       type: object
       properties:
-        symbol:       { type: string }
-        ready:        { type: boolean }
-        n_bars:       { type: integer }
-        refit_count:  { type: integer }
-        tick_count:   { type: integer }
-        last_regime:  { type: string }
+        symbol: { type: string }
+        ready: { type: boolean }
+        n_bars: { type: integer }
+        refit_count: { type: integer }
+        tick_count: { type: integer }
+        last_regime: { type: string }
 
     SessionStats:
       type: object
       properties:
-        ready:        { type: boolean }
-        n_bars:       { type: integer }
-        refit_count:  { type: integer }
-        tick_count:   { type: integer }
-        last_regime:  { type: string }
+        ready: { type: boolean }
+        n_bars: { type: integer }
+        refit_count: { type: integer }
+        tick_count: { type: integer }
+        last_regime: { type: string }
 
     RegimeAlert:
       type: object
       properties:
-        type:      { type: string, example: alert }
-        symbol:    { type: string }
-        ts:        { type: number }
-        previous:  { type: string }
-        current:   { type: string }
-        severity:  { type: string, enum: [info, warning, critical] }
-        message:   { type: string }
+        type: { type: string, example: alert }
+        symbol: { type: string }
+        ts: { type: number }
+        previous: { type: string }
+        current: { type: string }
+        severity: { type: string, enum: [info, warning, critical] }
+        message: { type: string }
 
     WsMessage:
       type: object
@@ -611,13 +610,13 @@ components:
         type:
           type: string
           enum: [seed, tick, subscribe, ping]
-        symbol:  { type: string }
-        price:   { type: number, nullable: true }
+        symbol: { type: string }
+        price: { type: number, nullable: true }
         prices:
           type: array
           items: { type: number }
           nullable: true
-        ts:      { type: number, nullable: true }
+        ts: { type: number, nullable: true }
 
     Observation:
       type: object
@@ -649,36 +648,40 @@ components:
           minItems: 4
           maxItems: 4
           description: "4-state trend posteriors: [strong_bear, bear, bull, strong_bull]"
-        regime_label:   { type: string }
-        confidence:     { type: number, minimum: 0, maximum: 1 }
-        bar_index:      { type: integer }
-        markov_uniform: { type: boolean, description: "true if Markov features appear uniform (bug indicator)" }
+        regime_label: { type: string }
+        confidence: { type: number, minimum: 0, maximum: 1 }
+        bar_index: { type: integer }
+        markov_uniform:
+          {
+            type: boolean,
+            description: "true if Markov features appear uniform (bug indicator)",
+          }
 
     FeatureIndex:
       type: object
       description: Feature index constants (F namespace)
       properties:
-        LOG_RET_1:          { type: integer, example: 0 }
-        LOG_RET_3:          { type: integer, example: 1 }
-        LOG_RET_10:         { type: integer, example: 2 }
-        NORMALISED_ATR:     { type: integer, example: 3 }
-        ROLLING_VOL_20:     { type: integer, example: 4 }
-        EMA_DISTANCE:       { type: integer, example: 5 }
-        HHLL_SCORE:         { type: integer, example: 6 }
-        VOL_REGIME_PCT:     { type: integer, example: 7 }
-        ATR_VS_BASELINE:    { type: integer, example: 8 }
-        VOL_TREND_SLOPE:    { type: integer, example: 9 }
-        REGIME_PROB_0:      { type: integer, example: 10 }
-        REGIME_PROB_3:      { type: integer, example: 13 }
-        VOL_PROB_LOW:       { type: integer, example: 14 }
-        VOL_PROB_MEDIUM:    { type: integer, example: 15 }
-        VOL_PROB_HIGH:      { type: integer, example: 16 }
-        TREND_PROB_DOWN:    { type: integer, example: 17 }
+        LOG_RET_1: { type: integer, example: 0 }
+        LOG_RET_3: { type: integer, example: 1 }
+        LOG_RET_10: { type: integer, example: 2 }
+        NORMALISED_ATR: { type: integer, example: 3 }
+        ROLLING_VOL_20: { type: integer, example: 4 }
+        EMA_DISTANCE: { type: integer, example: 5 }
+        HHLL_SCORE: { type: integer, example: 6 }
+        VOL_REGIME_PCT: { type: integer, example: 7 }
+        ATR_VS_BASELINE: { type: integer, example: 8 }
+        VOL_TREND_SLOPE: { type: integer, example: 9 }
+        REGIME_PROB_0: { type: integer, example: 10 }
+        REGIME_PROB_3: { type: integer, example: 13 }
+        VOL_PROB_LOW: { type: integer, example: 14 }
+        VOL_PROB_MEDIUM: { type: integer, example: 15 }
+        VOL_PROB_HIGH: { type: integer, example: 16 }
+        TREND_PROB_DOWN: { type: integer, example: 17 }
         TREND_PROB_NEUTRAL: { type: integer, example: 18 }
-        TREND_PROB_UP:      { type: integer, example: 19 }
-        REGIME_QUALITY:     { type: integer, example: 20 }
-        STATE_CONFIDENCE:   { type: integer, example: 21 }
-        MASANIELLO:         { type: integer, example: 22 }
-        DRAWDOWN_FACTOR:    { type: integer, example: 23 }
-        N_FEATURES:         { type: integer, example: 24 }
-        MARKOV_SLICE:       { type: string,  example: "slice(14, 20)" }
+        TREND_PROB_UP: { type: integer, example: 19 }
+        REGIME_QUALITY: { type: integer, example: 20 }
+        STATE_CONFIDENCE: { type: integer, example: 21 }
+        MASANIELLO: { type: integer, example: 22 }
+        DRAWDOWN_FACTOR: { type: integer, example: 23 }
+        N_FEATURES: { type: integer, example: 24 }
+        MARKOV_SLICE: { type: string, example: "slice(14, 20)" }
