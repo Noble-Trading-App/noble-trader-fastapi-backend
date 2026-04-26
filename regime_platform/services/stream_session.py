@@ -80,7 +80,7 @@ class StreamSession:
       4. On regime change                  →  alert callbacks fired
     """
 
-    MIN_PRICES_FOR_FIT = 51
+    MIN_PRICES_FOR_FIT = 81
 
     def __init__(
         self,
