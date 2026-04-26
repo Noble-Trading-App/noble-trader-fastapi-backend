@@ -1,0 +1,2622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Regime Risk Platform — Documentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,600;1,400&family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:          #080c10;
+  --bg2:         #0d1117;
+  --bg3:         #111820;
+  --border:      #1e2a36;
+  --border2:     #243040;
+  --text:        #c8d6e5;
+  --text-dim:    #5a7a96;
+  --text-bright: #e8f4ff;
+  --accent:      #00d4ff;
+  --accent2:     #0099cc;
+  --gold:        #f0c060;
+  --green:       #00e5a0;
+  --red:         #ff4d6a;
+  --orange:      #ff8c42;
+  --purple:      #a78bfa;
+  --mono:        'IBM Plex Mono', monospace;
+  --sans:        'Inter', sans-serif;
+  --display:     'Syne', sans-serif;
+  --sidebar-w:   280px;
+  --header-h:    56px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* ── HEADER ─────────────────────────────────────────────── */
+header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: var(--header-h);
+  background: rgba(8,12,16,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px 0 calc(var(--sidebar-w) + 24px);
+}
+
+.header-brand {
+  display: flex; align-items: center; gap: 12px;
+  font-family: var(--display);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-bright);
+  letter-spacing: 0.02em;
+}
+
+.header-brand .logo-mark {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  flex-shrink: 0;
+}
+
+.header-meta {
+  display: flex; align-items: center; gap: 20px;
+}
+
+.badge {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+}
+
+.badge-version { background: rgba(0,212,255,0.12); color: var(--accent); border: 1px solid rgba(0,212,255,0.25); }
+.badge-stable  { background: rgba(0,229,160,0.12); color: var(--green);  border: 1px solid rgba(0,229,160,0.25); }
+
+/* ── SIDEBAR ─────────────────────────────────────────────── */
+nav#sidebar {
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  width: var(--sidebar-w);
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 101;
+  display: flex;
+  flex-direction: column;
+}
+
+nav#sidebar::-webkit-scrollbar { width: 4px; }
+nav#sidebar::-webkit-scrollbar-track { background: transparent; }
+nav#sidebar::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+.sidebar-header {
+  padding: 16px 20px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 10px;
+}
+
+.sidebar-logo {
+  width: 24px; height: 24px;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  flex-shrink: 0;
+}
+
+.sidebar-title {
+  font-family: var(--display);
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-bright);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.sidebar-subtitle {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text-dim);
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+}
+
+.nav-section {
+  padding: 20px 0 8px;
+}
+
+.nav-section-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 0 20px 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+
+.nav-section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.nav-link {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 20px;
+  color: var(--text-dim);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 400;
+  border-left: 2px solid transparent;
+  transition: all 0.15s ease;
+  position: relative;
+  cursor: pointer;
+}
+
+.nav-link:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+
+.nav-link.active {
+  color: var(--accent);
+  background: rgba(0,212,255,0.06);
+  border-left-color: var(--accent);
+}
+
+.nav-link .nav-icon {
+  font-family: var(--mono);
+  font-size: 10px;
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.nav-sub-link {
+  display: flex; align-items: center;
+  padding: 5px 20px 5px 48px;
+  color: var(--text-dim);
+  text-decoration: none;
+  font-size: 12px;
+  border-left: 2px solid transparent;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.nav-sub-link:hover { color: var(--text); }
+.nav-sub-link.active { color: var(--accent); border-left-color: var(--accent); }
+
+.method-tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 2px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.tag-post   { background: rgba(0,212,255,0.15); color: var(--accent); }
+.tag-get    { background: rgba(0,229,160,0.15); color: var(--green); }
+.tag-ws     { background: rgba(167,139,250,0.15); color: var(--purple); }
+.tag-sse    { background: rgba(240,192,96,0.15); color: var(--gold); }
+.tag-delete { background: rgba(255,77,106,0.15); color: var(--red); }
+
+/* ── MAIN CONTENT ────────────────────────────────────────── */
+main {
+  margin-left: var(--sidebar-w);
+  margin-top: var(--header-h);
+  min-height: calc(100vh - var(--header-h));
+}
+
+.page { display: none; padding: 48px 64px 80px; max-width: 900px; }
+.page.active { display: block; animation: fadeIn 0.2s ease; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── TYPOGRAPHY ─────────────────────────────────────────── */
+h1 {
+  font-family: var(--display);
+  font-size: 38px;
+  font-weight: 800;
+  color: var(--text-bright);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin-bottom: 16px;
+}
+
+h1 .accent-word { color: var(--accent); }
+
+h2 {
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-bright);
+  margin: 48px 0 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  letter-spacing: -0.01em;
+}
+
+h2:first-child { margin-top: 0; }
+
+h3 {
+  font-family: var(--display);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-bright);
+  margin: 32px 0 12px;
+}
+
+p { margin-bottom: 16px; color: var(--text); line-height: 1.8; }
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ── HERO BLOCK ─────────────────────────────────────────── */
+.hero {
+  background: linear-gradient(135deg, rgba(0,212,255,0.04), rgba(167,139,250,0.04));
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 32px 36px;
+  margin-bottom: 40px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(0,212,255,0.08), transparent 70%);
+  pointer-events: none;
+}
+
+.hero-eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+
+.hero-desc {
+  font-size: 15px;
+  color: var(--text);
+  line-height: 1.7;
+  max-width: 620px;
+  margin: 0;
+}
+
+/* ── CARDS ───────────────────────────────────────────────── */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 20px;
+  transition: border-color 0.2s, transform 0.2s;
+  cursor: pointer;
+}
+
+.card:hover { border-color: var(--border2); transform: translateY(-2px); }
+
+.card-icon {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.card-title {
+  font-family: var(--display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-bright);
+  margin-bottom: 6px;
+}
+
+.card-desc { font-size: 12px; color: var(--text-dim); line-height: 1.6; }
+
+/* ── CODE BLOCKS ─────────────────────────────────────────── */
+pre {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 20px 24px;
+  overflow-x: auto;
+  margin: 16px 0;
+  position: relative;
+}
+
+pre::-webkit-scrollbar { height: 4px; }
+pre::-webkit-scrollbar-track { background: transparent; }
+pre::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+code {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--text);
+}
+
+pre code { display: block; }
+
+/* syntax colour classes */
+.kw  { color: var(--purple); }
+.str { color: var(--green); }
+.num { color: var(--gold); }
+.cmt { color: var(--text-dim); font-style: italic; }
+.fn  { color: var(--accent); }
+.key { color: var(--accent2); }
+.url { color: var(--gold); text-decoration: underline; }
+.err { color: var(--red); }
+.ok  { color: var(--green); }
+
+.code-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 8px 24px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  margin-top: 16px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.code-label + pre { border-radius: 0 0 6px 6px; margin-top: 0; }
+
+/* ── TABLES ──────────────────────────────────────────────── */
+.table-wrap { overflow-x: auto; margin: 20px 0; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+thead tr { border-bottom: 1px solid var(--border2); }
+
+th {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 10px 16px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+td {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  color: var(--text);
+}
+
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,0.015); }
+
+td code {
+  background: rgba(0,212,255,0.08);
+  color: var(--accent);
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 11.5px;
+}
+
+/* ── ENDPOINT CARDS ─────────────────────────────────────── */
+.endpoint {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin: 24px 0;
+  overflow: hidden;
+}
+
+.endpoint-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px 20px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+}
+
+.endpoint-method {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  min-width: 52px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.m-post   { background: rgba(0,212,255,0.15);  color: var(--accent); }
+.m-get    { background: rgba(0,229,160,0.15);  color: var(--green); }
+.m-ws     { background: rgba(167,139,250,0.15); color: var(--purple); }
+.m-sse    { background: rgba(240,192,96,0.15);  color: var(--gold); }
+.m-delete { background: rgba(255,77,106,0.15);  color: var(--red); }
+
+.endpoint-path {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text-bright);
+  font-weight: 400;
+}
+
+.endpoint-summary {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-left: auto;
+}
+
+.endpoint-body { padding: 20px 24px; }
+
+/* ── PARAM BLOCK ─────────────────────────────────────────── */
+.param {
+  display: flex;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  align-items: flex-start;
+}
+
+.param:last-child { border-bottom: none; }
+
+.param-name {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--accent);
+  min-width: 180px;
+  flex-shrink: 0;
+}
+
+.param-type {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--gold);
+  min-width: 80px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.param-req {
+  font-family: var(--mono);
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: rgba(255,77,106,0.12);
+  color: var(--red);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.param-opt {
+  font-family: var(--mono);
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: rgba(90,122,150,0.2);
+  color: var(--text-dim);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.param-desc { font-size: 12.5px; color: var(--text); line-height: 1.6; flex: 1; }
+.param-default { font-family: var(--mono); font-size: 11px; color: var(--text-dim); margin-top: 3px; }
+
+/* ── CALLOUTS ─────────────────────────────────────────────── */
+.callout {
+  border-radius: 6px;
+  padding: 14px 18px;
+  margin: 20px 0;
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.callout-icon { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+.callout-body { flex: 1; }
+.callout-body strong { display: block; margin-bottom: 4px; font-weight: 600; }
+
+.callout-info    { background: rgba(0,212,255,0.06); border-left: 3px solid var(--accent); }
+.callout-warning { background: rgba(240,192,96,0.06); border-left: 3px solid var(--gold); }
+.callout-tip     { background: rgba(0,229,160,0.06);  border-left: 3px solid var(--green); }
+.callout-danger  { background: rgba(255,77,106,0.06); border-left: 3px solid var(--red); }
+
+/* ── REGIME TABLE ────────────────────────────────────────── */
+.regime-matrix {
+  display: grid;
+  grid-template-columns: 100px repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 20px 0;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.regime-cell {
+  background: var(--bg2);
+  padding: 12px 16px;
+  text-align: center;
+}
+
+.regime-cell.header { background: var(--bg3); color: var(--text-dim); font-size: 11px; letter-spacing: 0.1em; }
+.regime-cell.row-header { background: var(--bg3); color: var(--text-dim); text-align: right; }
+
+.rm-high { color: var(--green); font-weight: 600; }
+.rm-mid  { color: var(--gold); }
+.rm-low  { color: var(--red); font-weight: 600; }
+
+/* ── FLOW DIAGRAM ────────────────────────────────────────── */
+.flow {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin: 24px 0;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.flow-step {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px 18px;
+  flex-shrink: 0;
+  min-width: 140px;
+  text-align: center;
+}
+
+.flow-step-num {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+.flow-step-title {
+  font-family: var(--display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-bright);
+  margin-bottom: 4px;
+}
+
+.flow-step-sub { font-size: 11px; color: var(--text-dim); }
+
+.flow-arrow {
+  color: var(--border2);
+  font-size: 18px;
+  padding: 0 4px;
+  flex-shrink: 0;
+}
+
+/* ── PIPELINE LAYERS ─────────────────────────────────────── */
+.pipeline-layer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  transition: border-color 0.2s;
+}
+
+.pipeline-layer:hover { border-color: var(--border2); }
+
+.pipeline-n {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+  min-width: 24px;
+  font-weight: 600;
+}
+
+.pipeline-name {
+  font-family: var(--display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-bright);
+  min-width: 160px;
+}
+
+.pipeline-fn {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--gold);
+  flex: 1;
+}
+
+.pipeline-output {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* ── WS MESSAGE TYPES ────────────────────────────────────── */
+.ws-msg {
+  display: flex; gap: 12px; padding: 10px 0;
+  border-bottom: 1px solid var(--border); align-items: flex-start;
+}
+.ws-msg:last-child { border-bottom: none; }
+.ws-type {
+  font-family: var(--mono); font-size: 11px; font-weight: 600;
+  padding: 3px 8px; border-radius: 3px;
+  background: rgba(0,212,255,0.12); color: var(--accent);
+  flex-shrink: 0; min-width: 90px; text-align: center;
+}
+.ws-dir { font-family: var(--mono); font-size: 11px; color: var(--text-dim); min-width: 72px; flex-shrink: 0; }
+.ws-desc { font-size: 12.5px; color: var(--text); line-height: 1.6; }
+
+/* ── SEVERITY BADGES ─────────────────────────────────────── */
+.sev-info     { background: rgba(0,212,255,0.12);  color: var(--accent); padding: 2px 8px; border-radius: 3px; font-family: var(--mono); font-size: 10px; }
+.sev-warning  { background: rgba(240,192,96,0.12); color: var(--gold);   padding: 2px 8px; border-radius: 3px; font-family: var(--mono); font-size: 10px; }
+.sev-critical { background: rgba(255,77,106,0.12); color: var(--red);    padding: 2px 8px; border-radius: 3px; font-family: var(--mono); font-size: 10px; }
+
+/* ── ARCHITECTURE TREE ───────────────────────────────────── */
+.tree {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.9;
+  color: var(--text);
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 20px 24px;
+}
+
+.tree .dir  { color: var(--accent); }
+.tree .file { color: var(--text); }
+.tree .cmt  { color: var(--text-dim); }
+.tree .new  { color: var(--green); }
+
+/* ── FOOTER ──────────────────────────────────────────────── */
+.page-footer {
+  margin-top: 64px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  color: var(--text-dim);
+  font-size: 12px;
+  font-family: var(--mono);
+}
+
+/* ── SCROLL PROGRESS ─────────────────────────────────────── */
+#progress {
+  position: fixed; top: 0; left: var(--sidebar-w); right: 0;
+  height: 2px; z-index: 200;
+  background: linear-gradient(90deg, var(--accent), var(--purple));
+  transform-origin: left;
+  transform: scaleX(0);
+  transition: transform 0.1s linear;
+}
+
+/* ── COPY BUTTON ─────────────────────────────────────────── */
+.code-wrap { position: relative; }
+.copy-btn {
+  position: absolute; top: 10px; right: 10px;
+  font-family: var(--mono); font-size: 10px;
+  color: var(--text-dim); background: var(--bg3);
+  border: 1px solid var(--border); border-radius: 3px;
+  padding: 3px 8px; cursor: pointer; transition: all 0.15s;
+}
+.copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+.copy-btn.copied { color: var(--green); border-color: var(--green); }
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo"></div>
+    <div>
+      <div class="sidebar-title">Regime Risk</div>
+      <div class="sidebar-subtitle">API Documentation v2.0</div>
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Getting Started</div>
+    <a class="nav-link active" onclick="show('overview')"><span class="nav-icon">◈</span> Overview</a>
+    <a class="nav-link" onclick="show('quickstart')"><span class="nav-icon">▶</span> Quick Start</a>
+    <a class="nav-link" onclick="show('architecture')"><span class="nav-icon">⬡</span> Architecture</a>
+    <a class="nav-link" onclick="show('concepts')"><span class="nav-icon">◎</span> Core Concepts</a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Batch API</div>
+    <a class="nav-link" onclick="show('batch-full')"><span class="nav-icon">★</span> Full Pipeline <span class="method-tag tag-post">POST</span></a>
+    <a class="nav-link" onclick="show('batch-regime')"><span class="nav-icon">◑</span> Regime Detect <span class="method-tag tag-post">POST</span></a>
+    <a class="nav-link" onclick="show('batch-size')"><span class="nav-icon">◐</span> Kelly Sizing <span class="method-tag tag-post">POST</span></a>
+    <a class="nav-link" onclick="show('masaniello')"><span class="nav-icon">◑</span> Masaniello Sizer</a>
+    <a class="nav-link" onclick="show('batch-risk')"><span class="nav-icon">◒</span> Risk Analyse <span class="method-tag tag-post">POST</span></a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Streaming API</div>
+    <a class="nav-link" onclick="show('stream-seed')"><span class="nav-icon">⬤</span> Seed Session <span class="method-tag tag-post">POST</span></a>
+    <a class="nav-link" onclick="show('stream-tick')"><span class="nav-icon">⬡</span> Tick Ingest <span class="method-tag tag-post">POST</span></a>
+    <a class="nav-link" onclick="show('stream-ws')"><span class="nav-icon">⇄</span> WebSocket <span class="method-tag tag-ws">WS</span></a>
+    <a class="nav-link" onclick="show('stream-sse')"><span class="nav-icon">→</span> SSE Streams <span class="method-tag tag-sse">SSE</span></a>
+    <a class="nav-link" onclick="show('stream-sessions')"><span class="nav-icon">≡</span> Sessions <span class="method-tag tag-get">GET</span></a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">v3.0 Features</div>
+    <a class="nav-link" onclick="show('gpu-overview')"><span class="nav-icon">⬡</span> GPU HMM <span class="method-tag tag-get">GET</span></a>
+    <a class="nav-link" onclick="show('feeds-overview')"><span class="nav-icon">→</span> Live Feeds <span class="method-tag tag-post">POST</span></a>
+    <a class="nav-link" onclick="show('corr-overview')"><span class="nav-icon">◎</span> Correlation <span class="method-tag tag-post">POST</span></a>
+    <a class="nav-link" onclick="show('opt-overview')"><span class="nav-icon">◈</span> Optimise <span class="method-tag tag-post">POST</span></a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">v2.1 Features</div>
+    <a class="nav-link" onclick="show('sim-overview')"><span class="nav-icon">◎</span> Simulation <span class="method-tag tag-post">POST</span></a>
+    <a class="nav-link" onclick="show('portfolio-overview')"><span class="nav-icon">⬡</span> Portfolio <span class="method-tag tag-get">GET</span></a>
+    <a class="nav-link" onclick="show('auth-overview')"><span class="nav-icon">◈</span> Auth / JWT</a>
+    <a class="nav-link" onclick="show('redis-overview')"><span class="nav-icon">◻</span> Redis Persistence</a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Observation</div>
+    <a class="nav-link" onclick="show('obs-overview')"><span class="nav-icon">◈</span> Overview</a>
+    <a class="nav-link" onclick="show('obs-features')"><span class="nav-icon">≡</span> Feature Table</a>
+    <a class="nav-link" onclick="show('obs-builder')"><span class="nav-icon">⬡</span> Builder API</a>
+    <a class="nav-link" onclick="show('obs-markov')"><span class="nav-icon">⚡</span> Markov Guard</a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Reference</div>
+    <a class="nav-link" onclick="show('ref-schemas')"><span class="nav-icon">□</span> Data Schemas</a>
+    <a class="nav-link" onclick="show('ref-regimes')"><span class="nav-icon">◈</span> Regime Matrix</a>
+    <a class="nav-link" onclick="show('ref-errors')"><span class="nav-icon">△</span> Errors</a>
+    <a class="nav-link" onclick="show('ref-libs')"><span class="nav-icon">◻</span> Libraries</a>
+  </div>
+</nav>
+
+<!-- HEADER -->
+<header>
+  <div class="header-brand">
+    <div class="logo-mark"></div>
+    Dynamic Regime Risk Management Platform
+  </div>
+  <div class="header-meta">
+    <span class="badge badge-version">v2.0.0</span>
+    <span class="badge badge-stable">STABLE</span>
+  </div>
+</header>
+
+<!-- MAIN CONTENT -->
+<main>
+
+<!-- ════════════════════════════════ OVERVIEW ══════════════════════════════════ -->
+<div class="page active" id="page-overview">
+  <div class="hero">
+    <div class="hero-eyebrow">// Dynamic Regime Risk Management Platform</div>
+    <h1><span class="accent-word">Regime-Aware</span><br>Risk Management API</h1>
+    <p class="hero-desc">A production-grade FastAPI service that detects market regimes with Hidden Markov Models and uses them to dynamically gate position sizes via the Kelly Criterion, compute real-time risk metrics (VaR/CVaR), and stream live regime snapshots and alerts over WebSocket and SSE.</p>
+  </div>
+
+  <div class="card-grid">
+    <div class="card" onclick="show('batch-full')">
+      <div class="card-icon">⚡</div>
+      <div class="card-title">Full Pipeline</div>
+      <div class="card-desc">One-shot: prices in, complete regime + sizing + risk JSON out.</div>
+    </div>
+    <div class="card" onclick="show('stream-ws')">
+      <div class="card-icon">⇄</div>
+      <div class="card-title">WebSocket Stream</div>
+      <div class="card-desc">Push ticks and receive regime snapshots in real time, fully duplex.</div>
+    </div>
+    <div class="card" onclick="show('stream-sse')">
+      <div class="card-icon">→</div>
+      <div class="card-title">SSE Alerts</div>
+      <div class="card-desc">Subscribe to regime-change alerts across all symbols via EventSource.</div>
+    </div>
+    <div class="card" onclick="show('ref-regimes')">
+      <div class="card-icon">◈</div>
+      <div class="card-title">Regime Matrix</div>
+      <div class="card-desc">9-cell vol × trend matrix with risk multipliers from 0.25× to 1.50×.</div>
+    </div>
+  </div>
+
+  <h2>What it Does</h2>
+  <p>The platform runs a three-stage pipeline on every price update:</p>
+
+  <div class="flow">
+    <div class="flow-step">
+      <div class="flow-step-num">01</div>
+      <div class="flow-step-title">Regime HMM</div>
+      <div class="flow-step-sub">Dual Gaussian HMM<br>vol + trend states</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="flow-step-num">02</div>
+      <div class="flow-step-title">Kelly Sizer</div>
+      <div class="flow-step-sub">Fractional Kelly<br>vol-scaled + gated</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="flow-step-num">03</div>
+      <div class="flow-step-title">Risk Engine</div>
+      <div class="flow-step-sub">VaR / CVaR<br>stop + TP targets</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="flow-step-num">04</div>
+      <div class="flow-step-title">Stream Out</div>
+      <div class="flow-step-sub">WS / SSE / REST<br>+ regime alerts</div>
+    </div>
+  </div>
+
+  <h2>API Surface</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><span class="m-post method-tag">POST</span></td><td><code>/analyse/full</code></td><td>Full pipeline — regime + sizing + risk in one request</td></tr>
+        <tr><td><span class="m-post method-tag">POST</span></td><td><code>/regime/detect</code></td><td>HMM regime detection only</td></tr>
+        <tr><td><span class="m-post method-tag">POST</span></td><td><code>/size/kelly</code></td><td>Kelly position sizing only</td></tr>
+        <tr><td><span class="m-post method-tag">POST</span></td><td><code>/risk/analyse</code></td><td>Risk metrics only</td></tr>
+        <tr><td><span class="m-post method-tag">POST</span></td><td><code>/stream/seed</code></td><td>Seed a symbol session</td></tr>
+        <tr><td><span class="m-post method-tag">POST</span></td><td><code>/stream/tick</code></td><td>Push one price tick</td></tr>
+        <tr><td><span class="m-get method-tag">GET</span></td><td><code>/stream/sessions</code></td><td>List active sessions + stats</td></tr>
+        <tr><td><span class="m-ws method-tag">WS</span></td><td><code>/ws/{symbol}</code></td><td>Full-duplex WebSocket stream</td></tr>
+        <tr><td><span class="m-sse method-tag">SSE</span></td><td><code>/sse/{symbol}</code></td><td>Server-Sent Events per symbol</td></tr>
+        <tr><td><span class="m-sse method-tag">SSE</span></td><td><code>/sse/alerts</code></td><td>Global regime-change alert broadcast</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ QUICKSTART ═════════════════════════════════ -->
+<div class="page" id="page-quickstart">
+  <h1>Quick <span class="accent-word">Start</span></h1>
+
+  <h2>Installation</h2>
+  <div class="code-label">bash</div>
+  <pre><code><span class="cmt"># Clone the project</span>
+git clone https://github.com/your-org/regime-platform.git
+cd regime-platform
+
+<span class="cmt"># Install dependencies</span>
+pip install -r requirements.txt
+
+<span class="cmt"># Start the server (v2 — batch + streaming)</span>
+uvicorn main_v2:<span class="fn">app</span> --reload --port <span class="num">8000</span>
+
+<span class="cmt"># Interactive Swagger docs</span>
+open http://localhost:<span class="num">8000</span>/docs</code></pre>
+
+  <h2>Batch Request — Full Pipeline</h2>
+  <p>The fastest way to get started. Send a price series and receive regime, sizing, and risk in one JSON response.</p>
+
+  <div class="code-label">bash — cURL</div>
+  <pre><code>curl -X POST http://localhost:<span class="num">8000</span>/analyse/full \
+  -H <span class="str">"Content-Type: application/json"</span> \
+  -d <span class="str">'{
+    "symbol": "SPY",
+    "prices": [450.1, 451.3, 449.8, ...],
+    "kelly_fraction": 0.5,
+    "target_vol": 0.15,
+    "base_risk_limit": 0.02
+  }'</span></code></pre>
+
+  <div class="code-label">python — requests</div>
+  <pre><code><span class="kw">import</span> requests
+
+prices = [<span class="num">450.1</span>, <span class="num">451.3</span>, <span class="num">449.8</span>, ...]  <span class="cmt"># min 81 bars</span>
+
+resp = requests.<span class="fn">post</span>(<span class="str">"http://localhost:8000/analyse/full"</span>, json={
+    <span class="str">"symbol"</span>:          <span class="str">"SPY"</span>,
+    <span class="str">"prices"</span>:          prices,
+    <span class="str">"kelly_fraction"</span>:  <span class="num">0.5</span>,
+    <span class="str">"target_vol"</span>:      <span class="num">0.15</span>,
+    <span class="str">"base_risk_limit"</span>: <span class="num">0.02</span>,
+})
+
+data = resp.<span class="fn">json</span>()
+<span class="fn">print</span>(data[<span class="str">"regime"</span>][<span class="str">"regime_label"</span>])   <span class="cmt"># e.g. "low_vol_bull"</span>
+<span class="fn">print</span>(data[<span class="str">"sizing"</span>][<span class="str">"recommended_f"</span>])  <span class="cmt"># e.g. 0.3247</span>
+<span class="fn">print</span>(data[<span class="str">"risk"</span>][<span class="str">"var_95"</span>])          <span class="cmt"># e.g. 0.0187</span></code></pre>
+
+  <h2>Streaming — WebSocket</h2>
+  <div class="code-label">python — websockets</div>
+  <pre><code><span class="kw">import</span> asyncio, json, websockets
+
+<span class="kw">async def</span> <span class="fn">stream</span>():
+    <span class="kw">async with</span> websockets.<span class="fn">connect</span>(<span class="str">"ws://localhost:8000/ws/SPY"</span>) <span class="kw">as</span> ws:
+
+        <span class="cmt"># 1. Seed with historical prices</span>
+        <span class="kw">await</span> ws.<span class="fn">send</span>(json.<span class="fn">dumps</span>({
+            <span class="str">"type"</span>: <span class="str">"seed"</span>, <span class="str">"symbol"</span>: <span class="str">"SPY"</span>,
+            <span class="str">"prices"</span>: prices  <span class="cmt"># list of 200+ floats</span>
+        }))
+        <span class="kw">await</span> ws.<span class="fn">recv</span>()  <span class="cmt"># {"type": "seeded", ...}</span>
+
+        <span class="cmt"># 2. Stream live ticks</span>
+        <span class="kw">for</span> price <span class="kw">in</span> live_feed:
+            <span class="kw">await</span> ws.<span class="fn">send</span>(json.<span class="fn">dumps</span>({
+                <span class="str">"type"</span>: <span class="str">"tick"</span>, <span class="str">"symbol"</span>: <span class="str">"SPY"</span>, <span class="str">"price"</span>: price
+            }))
+            msg = json.<span class="fn">loads</span>(<span class="kw">await</span> ws.<span class="fn">recv</span>())
+            <span class="fn">print</span>(msg[<span class="str">"regime_label"</span>], msg[<span class="str">"recommended_f"</span>])
+
+asyncio.<span class="fn">run</span>(<span class="fn">stream</span>())</code></pre>
+
+  <h2>Streaming — Browser SSE</h2>
+  <div class="code-label">javascript — browser</div>
+  <pre><code><span class="cmt">// Per-symbol regime stream</span>
+<span class="kw">const</span> feed = <span class="kw">new</span> <span class="fn">EventSource</span>(<span class="str">'/sse/SPY'</span>);
+feed.<span class="fn">onmessage</span> = e => {
+  <span class="kw">const</span> tick = JSON.<span class="fn">parse</span>(e.data);
+  console.<span class="fn">log</span>(tick.regime_label, tick.recommended_f);
+};
+
+<span class="cmt">// Global regime-change alert hub</span>
+<span class="kw">const</span> alerts = <span class="kw">new</span> <span class="fn">EventSource</span>(<span class="str">'/sse/alerts'</span>);
+alerts.<span class="fn">onmessage</span> = e => {
+  <span class="kw">const</span> a = JSON.<span class="fn">parse</span>(e.data);
+  <span class="cmt">// { symbol, previous, current, severity, message }</span>
+  <span class="kw">if</span> (a.severity === <span class="str">'critical'</span>) <span class="fn">triggerAlert</span>(a);
+};</code></pre>
+
+  <div class="callout callout-info">
+    <div class="callout-icon">ℹ</div>
+    <div class="callout-body">
+      <strong>Minimum bars requirement</strong>
+      All endpoints require at least 81 price bars (50 log-returns for HMM fitting + 1 observation). For stable HMM convergence, 200+ bars is recommended.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════ ARCHITECTURE ════════════════════════════════ -->
+<div class="page" id="page-architecture">
+  <h1><span class="accent-word">Architecture</span></h1>
+
+  <h2>Project Structure</h2>
+  <div class="tree">
+<span class="dir">regime_platform/</span>
+├── <span class="dir">core/</span>
+│   ├── <span class="file">regime_engine.py</span>      <span class="cmt"># Dual GaussianHMM (vol + trend)</span>
+│   ├── <span class="file">position_sizer.py</span>     <span class="cmt"># Fractional Kelly + vol-scaling + regime gating</span>
+│   └── <span class="file">risk_manager.py</span>       <span class="cmt"># VaR, CVaR, drawdown, stop/TP</span>
+├── <span class="dir">models/</span>
+│   ├── <span class="file">schemas.py</span>            <span class="cmt"># Pydantic v2 batch request/response models</span>
+│   └── <span class="file">stream_schemas.py</span>     <span class="cmt"># Pydantic v2 streaming models</span>
+├── <span class="dir">routers/</span>
+│   ├── <span class="file">regime.py</span>             <span class="cmt"># POST /regime/detect</span>
+│   ├── <span class="file">sizing.py</span>             <span class="cmt"># POST /size/kelly</span>
+│   ├── <span class="file">risk.py</span>               <span class="cmt"># POST /risk/analyse</span>
+│   ├── <span class="file">pipeline.py</span>           <span class="cmt"># POST /analyse/full</span>
+│   ├── <span class="new">stream_rest.py</span>        <span class="cmt"># POST /stream/seed | /tick | /ticks</span>
+│   └── <span class="new">stream_ws.py</span>          <span class="cmt"># WS /ws/{symbol} | SSE /sse/{symbol} | /sse/alerts</span>
+└── <span class="dir">services/</span>
+    ├── <span class="new">stream_session.py</span>     <span class="cmt"># Per-symbol stateful streaming engine</span>
+    └── <span class="new">registry.py</span>           <span class="cmt"># Singleton session store</span>
+<span class="file">main.py</span>                       <span class="cmt"># v1 batch-only app factory</span>
+<span class="new">main_v2.py</span>                    <span class="cmt"># v2 app factory (batch + streaming)</span>
+<span class="file">requirements.txt</span>
+<span class="file">test_platform.py</span>              <span class="cmt"># Batch smoke test</span>
+<span class="new">test_streaming.py</span>             <span class="cmt"># Streaming smoke test</span></div>
+
+  <p style="margin-top:12px; font-size:12px; color:var(--text-dim);"><span style="color:var(--green);">■</span> green = added in v2.0 (streaming layer)</p>
+
+  <h2>Pipeline Stages</h2>
+
+  <div class="pipeline-layer">
+    <div class="pipeline-n">01</div>
+    <div class="pipeline-name">RegimeHMM</div>
+    <div class="pipeline-fn">core/regime_engine.py</div>
+    <div class="pipeline-output">→ RegimeSnapshot (vol_probs, trend_probs, risk_multiplier)</div>
+  </div>
+  <div class="pipeline-layer">
+    <div class="pipeline-n">02</div>
+    <div class="pipeline-name">PositionSizer</div>
+    <div class="pipeline-fn">core/position_sizer.py</div>
+    <div class="pipeline-output">→ KellyResult (full_kelly_f → fractional_f → vol_scaled_f → regime_gated_f)</div>
+  </div>
+  <div class="pipeline-layer">
+    <div class="pipeline-n">03</div>
+    <div class="pipeline-name">RiskManager</div>
+    <div class="pipeline-fn">core/risk_manager.py</div>
+    <div class="pipeline-output">→ RiskMetrics (VaR, CVaR, drawdown, stop, TP)</div>
+  </div>
+  <div class="pipeline-layer">
+    <div class="pipeline-n">04</div>
+    <div class="pipeline-name">StreamSession</div>
+    <div class="pipeline-fn">services/stream_session.py</div>
+    <div class="pipeline-output">→ StreamTick pushed to all WS / SSE subscribers</div>
+  </div>
+
+  <h2>Streaming Architecture</h2>
+  <p>Each symbol maintains an independent <code>StreamSession</code> managed by the <code>SessionRegistry</code> singleton. Sessions have three concurrent responsibilities:</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Responsibility</th><th>Mechanism</th><th>Latency</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Tick path</strong></td><td>HMM predict → Kelly → VaR/CVaR → push to subscriber queues</td><td>~7 ms/tick</td></tr>
+        <tr><td><strong>Background refit</strong></td><td><code>asyncio.run_in_executor</code> — non-blocking EM fitting every N bars</td><td>~200–500 ms, async</td></tr>
+        <tr><td><strong>Alert debounce</strong></td><td>3-bar hysteresis before firing <code>RegimeAlert</code></td><td>3 bars delay</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout callout-tip">
+    <div class="callout-icon">✦</div>
+    <div class="callout-body">
+      <strong>Multiple concurrent subscribers</strong>
+      Any number of WebSocket clients and SSE consumers can subscribe to the same symbol session. The session pushes to an <code>asyncio.Queue</code> per subscriber. Slow consumers drop ticks (queue is bounded at 500 items) to prevent backpressure from blocking the tick path.
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════ CONCEPTS ══════════════════════════════════ -->
+<div class="page" id="page-concepts">
+  <h1>Core <span class="accent-word">Concepts</span></h1>
+
+  <h2>Regime Detection</h2>
+  <p>Two independent 3-state Gaussian HMMs are fitted on log-returns — one for <strong>volatility regimes</strong>, one for <strong>trend regimes</strong>. Each returns posterior state probabilities (not just Viterbi hard assignments), so confidence scores are smooth and differentiable.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dimension</th><th>States</th><th>Features</th></tr></thead>
+      <tbody>
+        <tr><td>Volatility</td><td><code>low</code> · <code>med_low</code> · <code>med_high</code> · <code>high</code></td><td>20-bar & 5-bar realised vol + |return|</td></tr>
+        <tr><td>Trend</td><td><code>strong_bear</code> · <code>bear</code> · <code>bull</code> · <code>strong_bull</code></td><td>raw return + 10-bar & 30-bar cumulative return</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>States are semantically labelled by sorting the HMM component means — no manual label assignment needed. The combined <code>regime_label</code> (e.g. <code>low_vol_bull</code>) is produced by joining the dominant vol and trend states.</p>
+
+  <h2>Kelly Criterion</h2>
+  <p>Position sizes are computed using the continuous-returns Kelly formula:</p>
+
+  <pre><code>f* = μ / σ²</code></pre>
+
+  <p>where <code>μ</code> is the mean daily log-return and <code>σ²</code> is the variance. The raw Kelly fraction then passes through three scaling stages:</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Stage</th><th>Field</th><th>Formula</th></tr></thead>
+      <tbody>
+        <tr><td>1. Fractional Kelly</td><td><code>fractional_f</code></td><td><code>full_kelly_f × kelly_fraction</code> (default 0.5)</td></tr>
+        <tr><td>2. Vol scaling</td><td><code>vol_scaled_f</code></td><td><code>fractional_f × (target_vol / realised_annual_vol)</code></td></tr>
+        <tr><td>3. Regime gating</td><td><code>regime_gated_f</code></td><td><code>vol_scaled_f × risk_multiplier</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout callout-warning">
+    <div class="callout-icon">⚠</div>
+    <div class="callout-body">
+      <strong>Full Kelly can be extreme</strong>
+      Full Kelly maximises long-run geometric growth but implies roughly 50% drawdowns. The 50% fractional Kelly default reduces drawdown risk while preserving most of the compounding benefit.
+    </div>
+  </div>
+
+  <h2>Risk Multiplier</h2>
+  <p>Each regime maps to a <code>risk_multiplier</code> in the range [0.10, 1.75] using the formula:</p>
+  <pre><code>vol_scale   = {low: 1.75, med_low: 1.20, med_high: 0.70, high: 0.35}[vol_state]
+trend_scale = {strong_bull: 1.00, bull: 0.88, bear: 0.60, strong_bear: 0.40}[trend_state]
+risk_multiplier = clip(vol_scale × trend_scale, 0.10, 1.75)</code></pre>
+
+  <h2>VaR and CVaR</h2>
+  <p>Risk metrics use <strong>historical (empirical) VaR/CVaR</strong> rather than parametric estimates. This is more accurate for fat-tailed return distributions common in financial assets.</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Metric</th><th>Definition</th></tr></thead>
+      <tbody>
+        <tr><td><code>var_95</code></td><td>5th percentile of the return distribution (95% of days lose less than this)</td></tr>
+        <tr><td><code>cvar_95</code></td><td>Mean loss in the worst 5% of days (Expected Shortfall)</td></tr>
+        <tr><td><code>suggested_stop</code></td><td>2× CVaR95 — initial stop-loss suggestion</td></tr>
+        <tr><td><code>suggested_tp</code></td><td>3× CVaR95 — take-profit at 3:1 reward/risk</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Alert Severity Levels</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Severity</th><th>Trigger condition</th><th>Action suggested</th></tr></thead>
+      <tbody>
+        <tr><td><span class="sev-critical">critical</span></td><td>New regime is <code>high_vol_bear</code> or <code>high_vol_neutral</code></td><td>Reduce exposure immediately</td></tr>
+        <tr><td><span class="sev-warning">warning</span></td><td>New regime contains <code>bear</code> or <code>high</code> (but not critical)</td><td>Review position sizing</td></tr>
+        <tr><td><span class="sev-info">info</span></td><td>All other transitions (e.g. neutral→bull)</td><td>Log and monitor</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout callout-tip">
+    <div class="callout-icon">✦</div>
+    <div class="callout-body">
+      <strong>3-bar debounce</strong>
+      Alerts only fire when the new regime persists for 3 consecutive bars. This prevents noise-driven micro-transitions from flooding downstream consumers with false alarms.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ BATCH: FULL PIPELINE ════════════════════════════ -->
+<div class="page" id="page-batch-full">
+  <h1>Full <span class="accent-word">Pipeline</span></h1>
+  <div class="callout callout-tip">
+    <div class="callout-icon">★</div>
+    <div class="callout-body"><strong>Recommended starting point</strong> — runs the complete regime → sizing → risk chain in a single request.</div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="endpoint-method m-post">POST</span>
+      <span class="endpoint-path">/analyse/full</span>
+      <span class="endpoint-summary">One-shot full pipeline</span>
+    </div>
+    <div class="endpoint-body">
+      <h3>Request Body</h3>
+      <div class="param"><span class="param-name">symbol</span><span class="param-type">string</span><span class="param-opt">optional</span><div class="param-desc">Ticker symbol for labelling.<div class="param-default">Default: "UNKNOWN"</div></div></div>
+      <div class="param"><span class="param-name">prices</span><span class="param-type">float[]</span><span class="param-req">required</span><div class="param-desc">Ordered close price series. Must contain at least 51 values. All prices must be positive.</div></div>
+      <div class="param"><span class="param-name">kelly_fraction</span><span class="param-type">float</span><span class="param-opt">optional</span><div class="param-desc">Fractional Kelly multiplier applied to full Kelly.<div class="param-default">Default: 0.5 · Range: [0.1, 1.0]</div></div></div>
+      <div class="param"><span class="param-name">target_vol</span><span class="param-type">float</span><span class="param-opt">optional</span><div class="param-desc">Annualised target volatility for vol-scaling.<div class="param-default">Default: 0.15</div></div></div>
+      <div class="param"><span class="param-name">base_risk_limit</span><span class="param-type">float</span><span class="param-opt">optional</span><div class="param-desc">Maximum daily loss fraction at 1× leverage.<div class="param-default">Default: 0.02 · Range: (0, 0.5]</div></div></div>
+
+      <h3>Example Request</h3>
+      <div class="code-label">json</div>
+      <pre><code>{
+  <span class="key">"symbol"</span>:          <span class="str">"SPY"</span>,
+  <span class="key">"prices"</span>:          [<span class="num">450.1</span>, <span class="num">451.3</span>, <span class="num">449.8</span>, <span class="num">452.0</span>, ...],
+  <span class="key">"kelly_fraction"</span>:  <span class="num">0.5</span>,
+  <span class="key">"target_vol"</span>:      <span class="num">0.15</span>,
+  <span class="key">"base_risk_limit"</span>: <span class="num">0.02</span>
+}</code></pre>
+
+      <h3>Response — 200 OK</h3>
+      <div class="code-label">json</div>
+      <pre><code>{
+  <span class="key">"symbol"</span>: <span class="str">"SPY"</span>,
+  <span class="key">"regime"</span>: {
+    <span class="key">"symbol"</span>:          <span class="str">"SPY"</span>,
+    <span class="key">"vol_probs"</span>:       { <span class="str">"low"</span>: <span class="num">0.82</span>, <span class="str">"medium"</span>: <span class="num">0.15</span>, <span class="str">"high"</span>: <span class="num">0.03</span> },
+    <span class="key">"trend_probs"</span>:     { <span class="str">"bear"</span>: <span class="num">0.05</span>, <span class="str">"neutral"</span>: <span class="num">0.12</span>, <span class="str">"bull"</span>: <span class="num">0.83</span> },
+    <span class="key">"vol_state"</span>:       <span class="str">"low"</span>,
+    <span class="key">"trend_state"</span>:     <span class="str">"bull"</span>,
+    <span class="key">"regime_label"</span>:    <span class="str">"low_vol_bull"</span>,
+    <span class="key">"confidence"</span>:      <span class="num">0.6806</span>,
+    <span class="key">"risk_multiplier"</span>: <span class="num">1.5</span>,
+    <span class="key">"n_bars_fitted"</span>:   <span class="num">200</span>
+  },
+  <span class="key">"sizing"</span>: {
+    <span class="key">"full_kelly_f"</span>:    <span class="num">0.8421</span>,
+    <span class="key">"fractional_f"</span>:   <span class="num">0.4211</span>,
+    <span class="key">"vol_scaled_f"</span>:   <span class="num">0.3247</span>,
+    <span class="key">"regime_gated_f"</span>: <span class="num">0.4870</span>,
+    <span class="key">"recommended_f"</span>:  <span class="num">0.4870</span>,
+    <span class="key">"kelly_edge"</span>:      <span class="num">2.134</span>,
+    <span class="key">"sharpe_ratio"</span>:    <span class="num">1.34</span>,
+    <span class="key">"regime_label"</span>:    <span class="str">"low_vol_bull"</span>,
+    <span class="key">"regime_multiplier"</span>: <span class="num">1.5</span>,
+    <span class="key">"fraction_type"</span>:  <span class="str">"50% Kelly"</span>,
+    <span class="key">"notes"</span>: [<span class="str">"Full Kelly &gt; 50% — fractional Kelly strongly recommended."</span>]
+  },
+  <span class="key">"risk"</span>: {
+    <span class="key">"recommended_f"</span>:   <span class="num">0.4870</span>,
+    <span class="key">"var_95"</span>:          <span class="num">0.0187</span>,
+    <span class="key">"var_99"</span>:          <span class="num">0.0298</span>,
+    <span class="key">"cvar_95"</span>:         <span class="num">0.0263</span>,
+    <span class="key">"cvar_99"</span>:         <span class="num">0.0412</span>,
+    <span class="key">"max_drawdown"</span>:    <span class="num">-0.1124</span>,
+    <span class="key">"annual_vol"</span>:      <span class="num">0.1842</span>,
+    <span class="key">"annual_return"</span>:   <span class="num">0.2214</span>,
+    <span class="key">"calmar_ratio"</span>:    <span class="num">1.97</span>,
+    <span class="key">"sortino_ratio"</span>:   <span class="num">1.82</span>,
+    <span class="key">"regime_label"</span>:    <span class="str">"low_vol_bull"</span>,
+    <span class="key">"regime_max_loss"</span>: <span class="num">0.03</span>,
+    <span class="key">"suggested_stop"</span>:  <span class="num">-0.0526</span>,
+    <span class="key">"suggested_tp"</span>:    <span class="num">0.0789</span>,
+    <span class="key">"risk_budget_used"</span>:<span class="num">0.61</span>,
+    <span class="key">"notes"</span>: []
+  }
+}</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ BATCH: REGIME ══════════════════════════════════ -->
+<div class="page" id="page-batch-regime">
+  <h1>Regime <span class="accent-word">Detection</span></h1>
+
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="endpoint-method m-post">POST</span>
+      <span class="endpoint-path">/regime/detect</span>
+      <span class="endpoint-summary">Detect market regime from price series</span>
+    </div>
+    <div class="endpoint-body">
+      <h3>Request Body</h3>
+      <div class="param"><span class="param-name">symbol</span><span class="param-type">string</span><span class="param-opt">optional</span><div class="param-desc">Ticker symbol for labelling. <div class="param-default">Default: "UNKNOWN"</div></div></div>
+      <div class="param"><span class="param-name">prices</span><span class="param-type">float[]</span><span class="param-req">required</span><div class="param-desc">Ordered close price series. Min 81 values, all positive.</div></div>
+
+      <h3>Response Fields</h3>
+      <div class="param"><span class="param-name">vol_probs</span><span class="param-type">object</span><span class="param-opt">–</span><div class="param-desc">Posterior probabilities for <code>low</code>, <code>medium</code>, <code>high</code> volatility states. Sum to 1.0.</div></div>
+      <div class="param"><span class="param-name">trend_probs</span><span class="param-type">object</span><span class="param-opt">–</span><div class="param-desc">Posterior probabilities for <code>bear</code>, <code>neutral</code>, <code>bull</code> trend states. Sum to 1.0.</div></div>
+      <div class="param"><span class="param-name">regime_label</span><span class="param-type">string</span><span class="param-opt">–</span><div class="param-desc">Combined label: <code>{vol_state}_vol_{trend_state}</code>. E.g. <code>low_vol_bull</code>.</div></div>
+      <div class="param"><span class="param-name">confidence</span><span class="param-type">float</span><span class="param-opt">–</span><div class="param-desc">max(vol_probs) × max(trend_probs). Range [0, 1]. High values indicate a clear, unambiguous regime.</div></div>
+      <div class="param"><span class="param-name">risk_multiplier</span><span class="param-type">float</span><span class="param-opt">–</span><div class="param-desc">Regime-derived scaling factor. Range [0.10, 1.75]. Used by the sizing engine.</div></div>
+      <div class="param"><span class="param-name">n_bars_fitted</span><span class="param-type">int</span><span class="param-opt">–</span><div class="param-desc">Number of price bars used in the HMM fit.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ BATCH: SIZING ══════════════════════════════════ -->
+<div class="page" id="page-batch-size">
+  <h1>Kelly <span class="accent-word">Sizing</span></h1>
+
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="endpoint-method m-post">POST</span>
+      <span class="endpoint-path">/size/kelly</span>
+      <span class="endpoint-summary">Regime-aware Kelly position sizing</span>
+    </div>
+    <div class="endpoint-body">
+      <h3>Request Body</h3>
+      <div class="param"><span class="param-name">prices</span><span class="param-type">float[]</span><span class="param-req">required</span><div class="param-desc">Min 51 price bars. Used to compute log-returns and fit the HMM.</div></div>
+      <div class="param"><span class="param-name">returns</span><span class="param-type">float[]</span><span class="param-opt">optional</span><div class="param-desc">Explicit return series. If provided, overrides returns computed from <code>prices</code>.</div></div>
+      <div class="param"><span class="param-name">kelly_fraction</span><span class="param-type">float</span><span class="param-opt">optional</span><div class="param-desc">Fractional Kelly multiplier. 0.5 = Half-Kelly. <div class="param-default">Default: 0.5 · Range: [0.1, 1.0]</div></div></div>
+      <div class="param"><span class="param-name">target_vol</span><span class="param-type">float</span><span class="param-opt">optional</span><div class="param-desc">Annualised target portfolio volatility for vol-scaling. <div class="param-default">Default: 0.15</div></div></div>
+      <div class="param"><span class="param-name">use_regime</span><span class="param-type">bool</span><span class="param-opt">optional</span><div class="param-desc">Whether to fit HMM and apply regime gating to the final fraction. <div class="param-default">Default: true</div></div></div>
+
+      <h3>Response Fields</h3>
+      <div class="param"><span class="param-name">full_kelly_f</span><span class="param-type">float</span><span class="param-opt">–</span><div class="param-desc">Raw Kelly fraction f* = μ/σ², clipped to [0, 1].</div></div>
+      <div class="param"><span class="param-name">fractional_f</span><span class="param-type">float</span><span class="param-opt">–</span><div class="param-desc">After applying <code>kelly_fraction</code> multiplier.</div></div>
+      <div class="param"><span class="param-name">vol_scaled_f</span><span class="param-type">float</span><span class="param-opt">–</span><div class="param-desc">After vol-targeting: <code>fractional_f × (target_vol / realised_annual_vol)</code>.</div></div>
+      <div class="param"><span class="param-name">regime_gated_f</span><span class="param-type">float</span><span class="param-opt">–</span><div class="param-desc">After regime multiplier. This equals <code>recommended_f</code>.</div></div>
+      <div class="param"><span class="param-name">recommended_f</span><span class="param-type">float</span><span class="param-opt">–</span><div class="param-desc">Final recommended position fraction in [0, 1]. Multiply by portfolio notional to get dollar size.</div></div>
+      <div class="param"><span class="param-name">notes</span><span class="param-type">string[]</span><span class="param-opt">–</span><div class="param-desc">Automatic diagnostic notes (e.g. "Full Kelly &gt; 50%", "Negative Sharpe").</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════ BATCH: RISK ═══════════════════════════════════ -->
+<div class="page" id="page-batch-risk">
+  <h1>Risk <span class="accent-word">Analysis</span></h1>
+
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="endpoint-method m-post">POST</span>
+      <span class="endpoint-path">/risk/analyse</span>
+      <span class="endpoint-summary">Full risk decomposition: VaR, CVaR, drawdown, stop/TP</span>
+    </div>
+    <div class="endpoint-body">
+      <h3>Request Body</h3>
+      <p>Extends <code>SizeRequest</code> with one additional field:</p>
+      <div class="param"><span class="param-name">base_risk_limit</span><span class="param-type">float</span><span class="param-opt">optional</span><div class="param-desc">Max acceptable daily loss fraction at 1× leverage. Scaled by <code>risk_multiplier</code> to produce <code>regime_max_loss</code>. <div class="param-default">Default: 0.02 · Range: (0, 0.5]</div></div></div>
+
+      <h3>Response Fields</h3>
+      <div class="param"><span class="param-name">var_95 / var_99</span><span class="param-type">float</span><span class="param-opt">–</span><div class="param-desc">1-day historical Value at Risk at 95% and 99% confidence. Expressed as a positive fraction.</div></div>
+      <div class="param"><span class="param-name">cvar_95 / cvar_99</span><span class="param-type">float</span><span class="param-opt">–</span><div class="param-desc">Expected Shortfall (mean loss in worst 5%/1% of days).</div></div>
+      <div class="param"><span class="param-name">max_drawdown</span><span class="param-type">float</span><span class="param-opt">–</span><div class="param-desc">Maximum peak-to-trough drawdown over the price series. Negative value.</div></div>
+      <div class="param"><span class="param-name">sortino_ratio</span><span class="param-type">float</span><span class="param-opt">–</span><div class="param-desc">Annual return / downside deviation. Penalises only negative volatility.</div></div>
+      <div class="param"><span class="param-name">calmar_ratio</span><span class="param-type">float</span><span class="param-opt">–</span><div class="param-desc">Annual return / |max drawdown|. Measures return per unit of worst-case loss.</div></div>
+      <div class="param"><span class="param-name">regime_max_loss</span><span class="param-type">float</span><span class="param-opt">–</span><div class="param-desc">Regime-adjusted daily loss limit: <code>base_risk_limit × risk_multiplier</code>.</div></div>
+      <div class="param"><span class="param-name">suggested_stop</span><span class="param-type">float</span><span class="param-opt">–</span><div class="param-desc">Suggested stop-loss: 2× CVaR95. Negative value (price drop).</div></div>
+      <div class="param"><span class="param-name">suggested_tp</span><span class="param-type">float</span><span class="param-opt">–</span><div class="param-desc">Suggested take-profit: 3× CVaR95. Positive value (3:1 reward/risk).</div></div>
+      <div class="param"><span class="param-name">risk_budget_used</span><span class="param-type">float</span><span class="param-opt">–</span><div class="param-desc">recommended_f as a fraction of the max safe position. Values &gt; 1.0 indicate over-allocation.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ STREAM: SEED ════════════════════════════════════ -->
+<div class="page" id="page-stream-seed">
+  <h1>Seed <span class="accent-word">Session</span></h1>
+  <p>Before streaming live ticks for a symbol, you must seed its session with enough historical prices for the HMM to fit. This is a one-time setup step per symbol.</p>
+
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="endpoint-method m-post">POST</span>
+      <span class="endpoint-path">/stream/seed</span>
+      <span class="endpoint-summary">Create and seed a streaming session</span>
+    </div>
+    <div class="endpoint-body">
+      <h3>Request Body</h3>
+      <div class="param"><span class="param-name">symbol</span><span class="param-type">string</span><span class="param-req">required</span><div class="param-desc">Ticker symbol. Used as the session key.</div></div>
+      <div class="param"><span class="param-name">prices</span><span class="param-type">float[]</span><span class="param-req">required</span><div class="param-desc">Historical prices to pre-load. Min 51. Recommend 200+.</div></div>
+      <div class="param"><span class="param-name">window</span><span class="param-type">int</span><span class="param-opt">optional</span><div class="param-desc">Rolling price buffer size. Older prices are evicted once full. <div class="param-default">Default: 500 · Range: [51, 5000]</div></div></div>
+      <div class="param"><span class="param-name">kelly_fraction</span><span class="param-type">float</span><span class="param-opt">optional</span><div class="param-desc">Fractional Kelly for this session. Applies to all ticks. <div class="param-default">Default: 0.5</div></div></div>
+      <div class="param"><span class="param-name">target_vol</span><span class="param-type">float</span><span class="param-opt">optional</span><div class="param-desc">Annualised target vol for this session. <div class="param-default">Default: 0.15</div></div></div>
+      <div class="param"><span class="param-name">base_risk_limit</span><span class="param-type">float</span><span class="param-opt">optional</span><div class="param-desc">Max daily loss fraction. <div class="param-default">Default: 0.02</div></div></div>
+      <div class="param"><span class="param-name">refit_every</span><span class="param-type">int</span><span class="param-opt">optional</span><div class="param-desc">Re-fit HMM every N ticks in the background. Lower = fresher model, higher = less CPU. <div class="param-default">Default: 50 · Range: [5, 500]</div></div></div>
+
+      <h3>Response — <code>SessionStatus</code></h3>
+      <div class="param"><span class="param-name">symbol</span><span class="param-type">string</span><span class="param-opt">–</span><div class="param-desc">Echoed symbol key.</div></div>
+      <div class="param"><span class="param-name">ready</span><span class="param-type">bool</span><span class="param-opt">–</span><div class="param-desc"><code>true</code> once the initial HMM has been successfully fitted.</div></div>
+      <div class="param"><span class="param-name">n_bars</span><span class="param-type">int</span><span class="param-opt">–</span><div class="param-desc">Current number of prices in the rolling buffer.</div></div>
+      <div class="param"><span class="param-name">refit_count</span><span class="param-type">int</span><span class="param-opt">–</span><div class="param-desc">Number of HMM refits performed so far.</div></div>
+      <div class="param"><span class="param-name">tick_count</span><span class="param-type">int</span><span class="param-opt">–</span><div class="param-desc">Total ticks processed since session creation.</div></div>
+      <div class="param"><span class="param-name">last_regime</span><span class="param-type">string</span><span class="param-opt">–</span><div class="param-desc">Most recent regime label, or <code>"pending"</code> if not yet ready.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ STREAM: TICK ═══════════════════════════════════ -->
+<div class="page" id="page-stream-tick">
+  <h1>Tick <span class="accent-word">Ingestion</span></h1>
+
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="endpoint-method m-post">POST</span>
+      <span class="endpoint-path">/stream/tick</span>
+      <span class="endpoint-summary">Push one price tick, receive regime snapshot</span>
+    </div>
+    <div class="endpoint-body">
+      <h3>Request Body — <code>TickIngest</code></h3>
+      <div class="param"><span class="param-name">symbol</span><span class="param-type">string</span><span class="param-req">required</span><div class="param-desc">Must match a seeded session key.</div></div>
+      <div class="param"><span class="param-name">price</span><span class="param-type">float</span><span class="param-req">required</span><div class="param-desc">Latest price. Must be positive.</div></div>
+      <div class="param"><span class="param-name">ts</span><span class="param-type">float</span><span class="param-opt">optional</span><div class="param-desc">Unix timestamp. Auto-filled with server time if omitted.</div></div>
+
+      <h3>Response — <code>TickResponse</code> or buffering stub</h3>
+      <p>Returns a full <code>TickResponse</code> once the session has enough bars. Returns <code>{"status": "buffering", "n_bars": N}</code> while warming up.</p>
+
+      <div class="code-label">TickResponse fields</div>
+      <pre><code>{
+  <span class="key">"symbol"</span>:          <span class="str">"SPY"</span>,
+  <span class="key">"ts"</span>:              <span class="num">1710000512.0</span>,         <span class="cmt">// unix timestamp</span>
+  <span class="key">"price"</span>:           <span class="num">512.34</span>,
+  <span class="key">"n_bars"</span>:          <span class="num">247</span>,
+  <span class="key">"regime_label"</span>:    <span class="str">"low_vol_bull"</span>,
+  <span class="key">"vol_state"</span>:       <span class="str">"low"</span>,
+  <span class="key">"trend_state"</span>:     <span class="str">"bull"</span>,
+  <span class="key">"vol_probs"</span>:       { <span class="str">"low"</span>: <span class="num">0.82</span>, <span class="str">"medium"</span>: <span class="num">0.15</span>, <span class="str">"high"</span>: <span class="num">0.03</span> },
+  <span class="key">"trend_probs"</span>:     { <span class="str">"bear"</span>: <span class="num">0.05</span>, <span class="str">"neutral"</span>: <span class="num">0.12</span>, <span class="str">"bull"</span>: <span class="num">0.83</span> },
+  <span class="key">"confidence"</span>:      <span class="num">0.6806</span>,
+  <span class="key">"risk_multiplier"</span>: <span class="num">1.5</span>,
+  <span class="key">"recommended_f"</span>:   <span class="num">0.4870</span>,
+  <span class="key">"sharpe_ratio"</span>:    <span class="num">1.34</span>,
+  <span class="key">"var_95"</span>:          <span class="num">0.0187</span>,
+  <span class="key">"cvar_95"</span>:         <span class="num">0.0263</span>,
+  <span class="key">"suggested_stop"</span>:  <span class="num">-0.0526</span>,
+  <span class="key">"suggested_tp"</span>:    <span class="num">0.0789</span>,
+  <span class="key">"regime_changed"</span>:  <span class="kw">false</span>,
+  <span class="key">"alert"</span>:           <span class="kw">null</span>,
+  <span class="key">"refit_count"</span>:     <span class="num">4</span>
+}</code></pre>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="endpoint-method m-post">POST</span>
+      <span class="endpoint-path">/stream/ticks</span>
+      <span class="endpoint-summary">Batch tick ingestion / replay</span>
+    </div>
+    <div class="endpoint-body">
+      <p>Query params: <code>symbol</code> (required), <code>prices</code> (array), optional <code>timestamps</code> (array of unix floats). Returns array of <code>TickResponse</code> objects. Useful for backtesting and replay scenarios.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ STREAM: WEBSOCKET ═══════════════════════════════ -->
+<div class="page" id="page-stream-ws">
+  <h1>WebSocket <span class="accent-word">Stream</span></h1>
+
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="endpoint-method m-ws">WS</span>
+      <span class="endpoint-path">/ws/{symbol}</span>
+      <span class="endpoint-summary">Full-duplex WebSocket stream</span>
+    </div>
+    <div class="endpoint-body">
+      <h3>Client → Server Messages</h3>
+      <p>All messages are JSON with a required <code>type</code> field.</p>
+
+      <div class="ws-msg"><div class="ws-type">seed</div><div class="ws-dir">→ server</div><div class="ws-desc">Seed the session. <code>{"type": "seed", "symbol": "SPY", "prices": [...]}</code>. Responds with <code>{"type": "seeded", "ready": true, ...}</code>.</div></div>
+      <div class="ws-msg"><div class="ws-type">tick</div><div class="ws-dir">→ server</div><div class="ws-desc">Push a price tick. <code>{"type": "tick", "symbol": "SPY", "price": 512.34, "ts": 1710000512.0}</code>. <code>ts</code> is optional.</div></div>
+      <div class="ws-msg"><div class="ws-type">subscribe</div><div class="ws-dir">→ server</div><div class="ws-desc">Switch to subscriber mode — receive all ticks produced by other producers on this symbol. <code>{"type": "subscribe", "symbol": "SPY"}</code>.</div></div>
+      <div class="ws-msg"><div class="ws-type">ping</div><div class="ws-dir">→ server</div><div class="ws-desc">Keepalive check. Responds with <code>{"type": "pong", "ts": ...}</code>.</div></div>
+
+      <h3>Server → Client Messages</h3>
+      <div class="ws-msg"><div class="ws-type">tick</div><div class="ws-dir">← server</div><div class="ws-desc">Full <code>TickResponse</code> JSON with <code>"type": "tick"</code> added.</div></div>
+      <div class="ws-msg"><div class="ws-type">alert</div><div class="ws-dir">← server</div><div class="ws-desc">Regime-change alert. <code>{"type": "alert", "symbol", "previous", "current", "severity", "message"}</code>.</div></div>
+      <div class="ws-msg"><div class="ws-type">seeded</div><div class="ws-dir">← server</div><div class="ws-desc">Seed confirmation: <code>{"type": "seeded", "ready": true, "n_bars": 200, "refit_count": 1}</code>.</div></div>
+      <div class="ws-msg"><div class="ws-type">buffering</div><div class="ws-dir">← server</div><div class="ws-desc">Warming up: <code>{"type": "buffering", "n_bars": N}</code>. Keep pushing ticks.</div></div>
+      <div class="ws-msg"><div class="ws-type">heartbeat</div><div class="ws-dir">← server</div><div class="ws-desc">Sent every 30 seconds of inactivity in subscriber mode to keep the connection alive.</div></div>
+      <div class="ws-msg"><div class="ws-type">error</div><div class="ws-dir">← server</div><div class="ws-desc"><code>{"type": "error", "detail": "..."}</code>. Connection remains open.</div></div>
+
+      <h3>Example — Python</h3>
+      <div class="code-label">python — asyncio + websockets</div>
+      <pre><code><span class="kw">import</span> asyncio, json, websockets
+
+<span class="kw">async def</span> <span class="fn">main</span>():
+    url = <span class="str">"ws://localhost:8000/ws/SPY"</span>
+    <span class="kw">async with</span> websockets.<span class="fn">connect</span>(url) <span class="kw">as</span> ws:
+
+        <span class="cmt"># Seed</span>
+        <span class="kw">await</span> ws.<span class="fn">send</span>(json.<span class="fn">dumps</span>({
+            <span class="str">"type"</span>: <span class="str">"seed"</span>, <span class="str">"symbol"</span>: <span class="str">"SPY"</span>,
+            <span class="str">"prices"</span>: historical_prices
+        }))
+        ack = json.<span class="fn">loads</span>(<span class="kw">await</span> ws.<span class="fn">recv</span>())
+        <span class="fn">assert</span> ack[<span class="str">"ready"</span>] <span class="kw">is True</span>
+
+        <span class="cmt"># Stream ticks</span>
+        <span class="kw">async for</span> price <span class="kw">in</span> live_price_feed():
+            <span class="kw">await</span> ws.<span class="fn">send</span>(json.<span class="fn">dumps</span>({
+                <span class="str">"type"</span>: <span class="str">"tick"</span>, <span class="str">"symbol"</span>: <span class="str">"SPY"</span>, <span class="str">"price"</span>: price
+            }))
+            msg = json.<span class="fn">loads</span>(<span class="kw">await</span> ws.<span class="fn">recv</span>())
+            <span class="kw">if</span> msg.<span class="fn">get</span>(<span class="str">"regime_changed"</span>):
+                <span class="fn">print</span>(<span class="str">f"REGIME CHANGE → {msg['regime_label']}"</span>)
+            <span class="fn">print</span>(<span class="str">f"f*={msg['recommended_f']:.4f}  VaR95={msg['var_95']:.4f}"</span>)
+
+asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════ STREAM: SSE ═══════════════════════════════════ -->
+<div class="page" id="page-stream-sse">
+  <h1>SSE <span class="accent-word">Streams</span></h1>
+  <p>Server-Sent Events are ideal for browser dashboards and read-only consumers. The connection is one-way (server → client) and reconnects automatically on drop.</p>
+
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="endpoint-method m-sse">SSE</span>
+      <span class="endpoint-path">/sse/{symbol}</span>
+      <span class="endpoint-summary">Per-symbol regime snapshot stream</span>
+    </div>
+    <div class="endpoint-body">
+      <p>Pushes a full <code>TickResponse</code> JSON on every tick processed for <code>symbol</code>. Requires the session to be seeded first. Sends a comment heartbeat (<code>: heartbeat</code>) every 15 seconds of inactivity.</p>
+
+      <div class="code-label">javascript — browser EventSource</div>
+      <pre><code><span class="kw">const</span> es = <span class="kw">new</span> <span class="fn">EventSource</span>(<span class="str">'http://localhost:8000/sse/SPY'</span>);
+
+es.<span class="fn">onopen</span>  = () => console.<span class="fn">log</span>(<span class="str">'connected'</span>);
+es.<span class="fn">onerror</span> = () => console.<span class="fn">log</span>(<span class="str">'reconnecting...'</span>);
+
+es.<span class="fn">onmessage</span> = event => {
+  <span class="kw">const</span> tick = JSON.<span class="fn">parse</span>(event.data);
+  <span class="kw">if</span> (tick.type === <span class="str">'connected'</span>) <span class="kw">return</span>;
+
+  document.<span class="fn">getElementById</span>(<span class="str">'regime'</span>).textContent  = tick.regime_label;
+  document.<span class="fn">getElementById</span>(<span class="str">'size'</span>).textContent    = (tick.recommended_f * <span class="num">100</span>).<span class="fn">toFixed</span>(<span class="num">1</span>) + <span class="str">'%'</span>;
+  document.<span class="fn">getElementById</span>(<span class="str">'var95'</span>).textContent   = (tick.var_95 * <span class="num">100</span>).<span class="fn">toFixed</span>(<span class="num">2</span>) + <span class="str">'%'</span>;
+};</code></pre>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="endpoint-method m-sse">SSE</span>
+      <span class="endpoint-path">/sse/alerts</span>
+      <span class="endpoint-summary">Global regime-change alert broadcast</span>
+    </div>
+    <div class="endpoint-body">
+      <p>Receives <code>RegimeAlert</code> events across <em>all</em> active symbol sessions. Only fires on regime transitions that persist for 3+ bars. Use for portfolio-level risk dashboards or notification systems.</p>
+
+      <div class="code-label">alert event payload</div>
+      <pre><code>{
+  <span class="key">"type"</span>:     <span class="str">"alert"</span>,
+  <span class="key">"symbol"</span>:   <span class="str">"SPY"</span>,
+  <span class="key">"ts"</span>:       <span class="num">1710000512.0</span>,
+  <span class="key">"previous"</span>: <span class="str">"low_vol_bull"</span>,
+  <span class="key">"current"</span>:  <span class="str">"high_vol_bear"</span>,
+  <span class="key">"severity"</span>: <span class="str">"critical"</span>,
+  <span class="key">"message"</span>:  <span class="str">"⚡ REGIME CHANGE [SPY]: low_vol_bull → high_vol_bear | risk_mult=0.25× | recommended_f=0.0812"</span>
+}</code></pre>
+
+      <div class="callout callout-danger">
+        <div class="callout-icon">⚠</div>
+        <div class="callout-body">
+          <strong>critical severity</strong> triggers when the new regime is <code>high_vol_bear</code> or <code>high_vol_neutral</code> — the two highest-risk states in the matrix. Consider subscribing to this stream in any automated risk management system.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ STREAM: SESSIONS ════════════════════════════════ -->
+<div class="page" id="page-stream-sessions">
+  <h1>Session <span class="accent-word">Management</span></h1>
+
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="endpoint-method m-get">GET</span>
+      <span class="endpoint-path">/stream/sessions</span>
+      <span class="endpoint-summary">List all active streaming sessions</span>
+    </div>
+    <div class="endpoint-body">
+      <p>Returns a map of <code>symbol → SessionStats</code> for all active sessions.</p>
+      <pre><code>{
+  <span class="key">"SPY"</span>: { <span class="key">"ready"</span>: <span class="kw">true</span>, <span class="key">"n_bars"</span>: <span class="num">347</span>, <span class="key">"refit_count"</span>: <span class="num">6</span>, <span class="key">"tick_count"</span>: <span class="num">147</span>, <span class="key">"last_regime"</span>: <span class="str">"low_vol_bull"</span> },
+  <span class="key">"QQQ"</span>: { <span class="key">"ready"</span>: <span class="kw">true</span>, <span class="key">"n_bars"</span>: <span class="num">500</span>, <span class="key">"refit_count"</span>: <span class="num">12</span>, <span class="key">"tick_count"</span>: <span class="num">312</span>, <span class="key">"last_regime"</span>: <span class="str">"medium_vol_neutral"</span> }
+}</code></pre>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="endpoint-method m-get">GET</span>
+      <span class="endpoint-path">/stream/session/{symbol}</span>
+      <span class="endpoint-summary">Get single session status</span>
+    </div>
+    <div class="endpoint-body"><p>Returns <code>SessionStatus</code> for one symbol. Returns 404 if not seeded.</p></div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="endpoint-method m-delete">DELETE</span>
+      <span class="endpoint-path">/stream/session/{symbol}</span>
+      <span class="endpoint-summary">Remove a session</span>
+    </div>
+    <div class="endpoint-body">
+      <p>Removes the session and releases the price buffer and model. Existing subscriber connections will lose their tick feed.</p>
+      <pre><code>{ <span class="key">"status"</span>: <span class="str">"removed"</span>, <span class="key">"symbol"</span>: <span class="str">"SPY"</span> }</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ REF: SCHEMAS ════════════════════════════════════ -->
+<div class="page" id="page-ref-schemas">
+  <h1>Data <span class="accent-word">Schemas</span></h1>
+
+  <h2>RegimeResponse</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>symbol</code></td><td>string</td><td>Ticker label</td></tr>
+      <tr><td><code>vol_probs</code></td><td>object</td><td><code>{"low": f, "medium": f, "high": f}</code> — posterior probabilities summing to 1.0</td></tr>
+      <tr><td><code>trend_probs</code></td><td>object</td><td><code>{"bear": f, "neutral": f, "bull": f}</code> — posterior probabilities summing to 1.0</td></tr>
+      <tr><td><code>vol_state</code></td><td>string</td><td>Dominant volatility state: <code>low</code> | <code>medium</code> | <code>high</code></td></tr>
+      <tr><td><code>trend_state</code></td><td>string</td><td>Dominant trend state: <code>bear</code> | <code>neutral</code> | <code>bull</code></td></tr>
+      <tr><td><code>regime_label</code></td><td>string</td><td>Combined: <code>{vol_state}_vol_{trend_state}</code></td></tr>
+      <tr><td><code>confidence</code></td><td>float</td><td>max(vol_probs) × max(trend_probs), range [0,1]</td></tr>
+      <tr><td><code>risk_multiplier</code></td><td>float</td><td>Range [0.10, 1.75]</td></tr>
+      <tr><td><code>n_bars_fitted</code></td><td>int</td><td>Number of price bars used</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>SizeResponse</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>full_kelly_f</code></td><td>float</td><td>Raw Kelly f* = μ/σ², clipped [0,1]</td></tr>
+      <tr><td><code>fractional_f</code></td><td>float</td><td>After <code>kelly_fraction</code> multiplier</td></tr>
+      <tr><td><code>vol_scaled_f</code></td><td>float</td><td>After vol-targeting</td></tr>
+      <tr><td><code>regime_gated_f</code></td><td>float</td><td>After regime multiplier. Equals <code>recommended_f</code></td></tr>
+      <tr><td><code>recommended_f</code></td><td>float</td><td>Final recommendation — multiply by notional capital</td></tr>
+      <tr><td><code>kelly_edge</code></td><td>float</td><td>Raw μ/σ² edge before clipping</td></tr>
+      <tr><td><code>sharpe_ratio</code></td><td>float</td><td>Annualised Sharpe ratio</td></tr>
+      <tr><td><code>regime_multiplier</code></td><td>float</td><td>Regime risk multiplier applied</td></tr>
+      <tr><td><code>fraction_type</code></td><td>string</td><td>Human label, e.g. <code>"50% Kelly"</code></td></tr>
+      <tr><td><code>notes</code></td><td>string[]</td><td>Automatic diagnostic warnings</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>RiskResponse</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>var_95</code> / <code>var_99</code></td><td>float</td><td>Historical VaR at 95%/99%. Positive fraction.</td></tr>
+      <tr><td><code>cvar_95</code> / <code>cvar_99</code></td><td>float</td><td>Expected Shortfall at 95%/99%</td></tr>
+      <tr><td><code>max_drawdown</code></td><td>float</td><td>Max peak-to-trough. Negative value.</td></tr>
+      <tr><td><code>annual_vol</code></td><td>float</td><td>Annualised std dev of returns (×√252)</td></tr>
+      <tr><td><code>annual_return</code></td><td>float</td><td>Mean daily return × 252</td></tr>
+      <tr><td><code>calmar_ratio</code></td><td>float</td><td>annual_return / |max_drawdown|</td></tr>
+      <tr><td><code>sortino_ratio</code></td><td>float</td><td>annual_return / downside deviation</td></tr>
+      <tr><td><code>regime_max_loss</code></td><td>float</td><td>base_risk_limit × risk_multiplier</td></tr>
+      <tr><td><code>suggested_stop</code></td><td>float</td><td>2× CVaR95. Negative (price drop).</td></tr>
+      <tr><td><code>suggested_tp</code></td><td>float</td><td>3× CVaR95. Positive (3:1 R/R).</td></tr>
+      <tr><td><code>risk_budget_used</code></td><td>float</td><td>recommended_f / max_safe_f. &gt;1 = over-allocated.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>TickResponse (Streaming)</h2>
+  <p>Superset of the above — includes all regime, sizing, and risk fields plus:</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>ts</code></td><td>float</td><td>Unix timestamp of the tick</td></tr>
+      <tr><td><code>price</code></td><td>float</td><td>Price value that triggered this snapshot</td></tr>
+      <tr><td><code>n_bars</code></td><td>int</td><td>Current buffer size</td></tr>
+      <tr><td><code>regime_changed</code></td><td>bool</td><td><code>true</code> on the bar that confirms a regime transition (after 3-bar debounce)</td></tr>
+      <tr><td><code>alert</code></td><td>string | null</td><td>Human-readable alert message if <code>regime_changed</code>, else null</td></tr>
+      <tr><td><code>refit_count</code></td><td>int</td><td>Number of background HMM refits performed for this session</td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<!-- ═══════════════════════════ REF: REGIMES ══════════════════════════════════ -->
+<div class="page" id="page-ref-regimes">
+  <h1>Regime <span class="accent-word">Matrix</span></h1>
+  <p>Every regime is defined by a volatility state × trend state pair. The <code>risk_multiplier</code> scales the Kelly position fraction accordingly.</p>
+
+  <div class="regime-matrix" style="grid-template-columns: 110px repeat(4, 1fr);">
+    <div class="regime-cell header">Vol \ Trend</div>
+    <div class="regime-cell header">Strong Bear</div>
+    <div class="regime-cell header">Bear</div>
+    <div class="regime-cell header">Bull</div>
+    <div class="regime-cell header">Strong Bull</div>
+
+    <div class="regime-cell row-header">Low</div>
+    <div class="regime-cell rm-mid">0.70×</div>
+    <div class="regime-cell rm-mid">1.05×</div>
+    <div class="regime-cell rm-high">1.54×</div>
+    <div class="regime-cell rm-high">1.75×</div>
+
+    <div class="regime-cell row-header">Med-Low</div>
+    <div class="regime-cell rm-low">0.48×</div>
+    <div class="regime-cell rm-mid">0.72×</div>
+    <div class="regime-cell rm-high">1.06×</div>
+    <div class="regime-cell rm-high">1.20×</div>
+
+    <div class="regime-cell row-header">Med-High</div>
+    <div class="regime-cell rm-low">0.28×</div>
+    <div class="regime-cell rm-low">0.42×</div>
+    <div class="regime-cell rm-mid">0.62×</div>
+    <div class="regime-cell rm-mid">0.70×</div>
+
+    <div class="regime-cell row-header">High</div>
+    <div class="regime-cell rm-low">0.14×</div>
+    <div class="regime-cell rm-low">0.21×</div>
+    <div class="regime-cell rm-low">0.31×</div>
+    <div class="regime-cell rm-low">0.35×</div>
+  </div>
+
+  <p style="font-size:12px; color:var(--text-dim); margin-top:8px;">
+    <span style="color:var(--green);">■</span> ≥1.0× risk-on &nbsp;&nbsp;
+    <span style="color:var(--gold);">■</span> neutral &nbsp;&nbsp;
+    <span style="color:var(--red);">■</span> risk-off
+  </p>
+
+  <h2>Regime Label Reference</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Label</th><th>Multiplier</th><th>Characterisation</th><th>Suggested action</th></tr></thead>
+    <tbody>
+      <tr><td><code>low_vol_strong_bull</code></td><td>1.75×</td><td>Quiet trending rally — optimal conditions</td><td>Maximum allocation</td></tr>
+      <tr><td><code>low_vol_bull</code></td><td>1.54×</td><td>Low noise, positive drift</td><td>Full scaled allocation</td></tr>
+      <tr><td><code>med_low_vol_strong_bull</code></td><td>1.20×</td><td>Modest vol, strong trend</td><td>Above-baseline allocation</td></tr>
+      <tr><td><code>med_low_vol_bull</code></td><td>1.06×</td><td>Moderate vol, positive trend</td><td>Normal allocation</td></tr>
+      <tr><td><code>low_vol_bear</code></td><td>1.05×</td><td>Quiet pullback — possibly a dip</td><td>Light reduction</td></tr>
+      <tr><td><code>med_high_vol_strong_bull</code></td><td>0.70×</td><td>Elevated vol but strong momentum</td><td>Reduce position</td></tr>
+      <tr><td><code>med_low_vol_bear</code></td><td>0.72×</td><td>Moderate vol, declining</td><td>Meaningful reduction</td></tr>
+      <tr><td><code>med_high_vol_bull</code></td><td>0.62×</td><td>Choppy uptrend</td><td>Reduce size</td></tr>
+      <tr><td><code>low_vol_strong_bear</code></td><td>0.70×</td><td>Quiet downtrend — potentially a slow bleed</td><td>Trim aggressively</td></tr>
+      <tr><td><code>med_high_vol_bear</code></td><td>0.42×</td><td>Volatile decline</td><td>Significant reduction</td></tr>
+      <tr><td><code>high_vol_strong_bull</code></td><td>0.35×</td><td>Volatile spike — unstable even if up</td><td>Reduce despite trend</td></tr>
+      <tr><td><code>high_vol_bull</code></td><td>0.31×</td><td>Rising on high vol — fragile</td><td>Minimal exposure</td></tr>
+      <tr><td><code>med_high_vol_strong_bear</code></td><td>0.28×</td><td>Accelerating drawdown</td><td>Near-zero exposure</td></tr>
+      <tr><td><code>high_vol_bear</code></td><td>0.21×</td><td>High vol downturn</td><td>Defensive</td></tr>
+      <tr><td><code>high_vol_strong_bear</code></td><td>0.14×</td><td>Crash / crisis regime</td><td>Maximum defensive</td></tr>
+      <tr><td><code>med_low_vol_strong_bear</code></td><td>0.48×</td><td>Confirmed downtrend, moderate vol</td><td>Large reduction</td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<!-- ══════════════════════════════ REF: ERRORS ════════════════════════════════ -->
+<div class="page" id="page-ref-errors">
+  <h1>Error <span class="accent-word">Reference</span></h1>
+
+  <div class="table-wrap"><table>
+    <thead><tr><th>HTTP Status</th><th>Scenario</th><th>Response body</th></tr></thead>
+    <tbody>
+      <tr><td><code>422</code></td><td>Validation error (bad prices, missing fields, out-of-range params)</td><td><code>{"detail": [{"loc": [...], "msg": "..."}]}</code></td></tr>
+      <tr><td><code>422</code></td><td>HMM fit failed (e.g. all identical prices, NaN values)</td><td><code>{"detail": "..."}</code> with error message</td></tr>
+      <tr><td><code>404</code></td><td>Tick pushed for symbol with no active session</td><td><code>{"detail": "No session for 'X'. Seed it first via POST /stream/seed."}</code></td></tr>
+      <tr><td><code>404</code></td><td>SSE or session GET for unknown symbol</td><td><code>{"detail": "No session for 'X'."}</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>WebSocket Error Messages</h2>
+  <p>WebSocket errors do not close the connection. They are sent as JSON:</p>
+  <pre><code>{ <span class="key">"type"</span>: <span class="str">"error"</span>, <span class="key">"detail"</span>: <span class="str">"session not seeded — send seed first"</span> }</code></pre>
+
+  <div class="table-wrap"><table>
+    <thead><tr><th>Detail message</th><th>Cause</th></tr></thead>
+    <tbody>
+      <tr><td><code>seed requires ≥51 prices</code></td><td>Seed message contained fewer than 51 price values</td></tr>
+      <tr><td><code>session not seeded — send seed first</code></td><td>tick/subscribe sent before seeding</td></tr>
+      <tr><td><code>no session for symbol</code></td><td>subscribe sent for symbol not in registry</td></tr>
+      <tr><td><code>tick requires 'price'</code></td><td>tick message missing <code>price</code> field</td></tr>
+      <tr><td><code>Invalid message: ...</code></td><td>Message failed Pydantic validation</td></tr>
+      <tr><td><code>Unknown type '...'</code></td><td>Unrecognised <code>type</code> field</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="callout callout-warning">
+    <div class="callout-icon">⚠</div>
+    <div class="callout-body">
+      <strong>HMM convergence warnings</strong>
+      <code>Model is not converging</code> stderr warnings are normal with short price series or in rapidly-changing market conditions. The model will still produce valid posterior probabilities. Increase <code>refit_every</code> or seed with 300+ bars to reduce these.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════ REF: LIBS ══════════════════════════════════ -->
+<div class="page" id="page-ref-libs">
+  <h1>Library <span class="accent-word">Reference</span></h1>
+
+  <div class="table-wrap"><table>
+    <thead><tr><th>Library</th><th>Version</th><th>Role</th><th>Why chosen</th></tr></thead>
+    <tbody>
+      <tr><td><strong>FastAPI</strong></td><td>≥0.111</td><td>Web framework</td><td>Async ASGI, Pydantic v2 native, auto-generates Swagger + ReDoc, fastest Python HTTP framework in benchmarks</td></tr>
+      <tr><td><strong>hmmlearn</strong></td><td>≥0.3.2</td><td>Hidden Markov Models</td><td>Mature <code>GaussianHMM</code> with forward-backward algorithm for posterior probabilities (not just Viterbi), scikit-learn API, stable on rolling windows</td></tr>
+      <tr><td><strong>scipy</strong></td><td>≥1.13</td><td>Stats primitives</td><td>VaR/CVaR percentile calculations, normal distribution utilities, optimisation scaffolding</td></tr>
+      <tr><td><strong>numpy</strong></td><td>≥1.26</td><td>Numerical core</td><td>Vectorised log-return and vol calculations, no pandas overhead in the hot tick path</td></tr>
+      <tr><td><strong>pydantic v2</strong></td><td>≥2.7</td><td>Validation & serialisation</td><td>Rust-core validation, discriminated unions, <code>ge</code>/<code>le</code>/<code>min_length</code> field constraints, auto-generated JSON Schema</td></tr>
+      <tr><td><strong>uvicorn</strong></td><td>≥0.29</td><td>ASGI server</td><td>Production-ready, supports <code>--reload</code> in dev and <code>--workers N</code> in production, WebSocket and SSE support built-in</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Why not pynamical or simupy?</h2>
+  <p><code>pynamical</code> is a chaos theory / bifurcation visualisation library (Lyapunov exponents, logistic maps). <code>simupy</code> is a block-diagram ODE solver for dynamical systems. Both are simulation tools, not statistical inference engines.</p>
+  <p>For a trading risk service where the goal is real-time probabilistic regime classification from market data, <code>hmmlearn</code> + <code>scipy</code> provide the right combination of statistical rigour and production performance. Either library could be added as an extension endpoint — <code>simupy</code> for ODE-based regime transition simulation, <code>pynamical</code> for portfolio chaos analysis.</p>
+
+  <h2>HMM Implementation Notes</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Parameter</th><th>Value</th><th>Rationale</th></tr></thead>
+    <tbody>
+      <tr><td><code>covariance_type</code></td><td><code>"diag"</code></td><td>More numerically stable than <code>"full"</code> on short rolling windows (< 300 bars). Switch to <code>"full"</code> with 500+ seed bars for richer covariance modelling.</td></tr>
+      <tr><td><code>n_components</code></td><td><code>3</code></td><td>Three states per dimension (low/medium/high, bear/neutral/bull) is the minimal useful granularity for risk-scaling decisions.</td></tr>
+      <tr><td><code>n_iter</code></td><td><code>100</code></td><td>Enough EM iterations for convergence on most return series without excessive refit latency.</td></tr>
+      <tr><td>State labelling</td><td>By mean sort</td><td>States are labelled semantically by sorting HMM component means — no manual mapping needed. Vol states sorted by realised vol mean; trend states sorted by cumulative return mean.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>requirements.txt</h2>
+  <div class="code-label">requirements.txt</div>
+  <pre><code>fastapi>=<span class="num">0.111.0</span>
+uvicorn[standard]>=<span class="num">0.29.0</span>
+hmmlearn>=<span class="num">0.3.2</span>
+numpy>=<span class="num">1.26.0</span>
+scipy>=<span class="num">1.13.0</span>
+pandas>=<span class="num">2.2.0</span>
+pydantic>=<span class="num">2.7.0</span>
+python-multipart>=<span class="num">0.0.9</span></code></pre>
+
+  <div class="page-footer">
+    <span>Dynamic Regime Risk Management Platform — v2.0.0</span>
+    <span>FastAPI · hmmlearn · scipy · numpy · pydantic v2</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ OBS: OVERVIEW ══════════════════════════════════ -->
+<div class="page" id="page-obs-overview">
+  <h1>Observation <span class="accent-word">Builder</span></h1>
+  <div class="hero">
+    <div class="hero-eyebrow">// core/obs_builder.py — InferenceObservationBuilder</div>
+    <p class="hero-desc">
+      Constructs a 24-feature observation vector for every price bar. Features 14–19
+      are the <strong>Markov features</strong> — live HMM posterior probabilities that
+      must be computed from the fitted <code>RegimeHMM</code>, never from a uniform prior.
+    </p>
+  </div>
+
+  <div class="callout callout-danger">
+    <div class="callout-icon">⚠</div>
+    <div class="callout-body">
+      <strong>Uniform-prior bug</strong>
+      If Markov features (indices 14–19) show constant values (~0.33), the HMM state
+      is not being passed into the observation. Always use <code>InferenceObservationBuilder</code>
+      (stateful class), never the standalone <code>build_observation()</code> function.
+      Call <code>obs.is_markov_uniform()</code> to detect this at runtime.
+    </div>
+  </div>
+
+  <h2>Two builder paths</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Path</th><th>Class / function</th><th>Markov features</th><th>Use when</th></tr></thead>
+    <tbody>
+      <tr><td>✓ <strong>Stateful</strong></td><td><code>InferenceObservationBuilder.build()</code></td><td style="color:var(--green)">Dynamic from fitted HMM</td><td>All production use</td></tr>
+      <tr><td>✗ Standalone</td><td><code>build_observation()</code> <em>(do not use)</em></td><td style="color:var(--red)">Uniform [0.25, 0.25, 0.25, 0.25]</td><td>Never — bug risk</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Quick Start</h2>
+  <div class="code-label">python</div>
+  <pre><code><span class="kw">from</span> regime_platform.core.obs_builder <span class="kw">import</span> InferenceObservationBuilder, F
+
+<span class="cmt"># Create stateful builder — maintains HMM across bars</span>
+builder = InferenceObservationBuilder(
+    window=<span class="num">200</span>,        <span class="cmt"># rolling price buffer size</span>
+    refit_every=<span class="num">50</span>,    <span class="cmt"># re-fit HMM every N bars</span>
+    recommended_f=<span class="num">0.35</span>, <span class="cmt"># Kelly fraction for Masaniello feature</span>
+)
+
+<span class="cmt"># Seed with historical bars (required before build/tick)</span>
+builder.<span class="fn">seed</span>(prices=close, high=high, low=low)
+<span class="kw">assert</span> builder.is_ready
+
+<span class="cmt"># Build full observation from window</span>
+obs = builder.<span class="fn">build</span>(prices=close, high=high, low=low)
+<span class="kw">assert</span> obs.vector.shape == (<span class="num">24</span>,)
+<span class="kw">assert not</span> obs.<span class="fn">is_markov_uniform</span>()   <span class="cmt"># guard against uniform-prior bug</span>
+
+<span class="cmt"># Access features by name (not magic numbers)</span>
+vol_low  = obs.vector[F.VOL_PROB_LOW]     <span class="cmt"># index 14</span>
+drawdown = obs.vector[F.DRAWDOWN_FACTOR]  <span class="cmt"># index 23</span>
+masani   = obs.vector[F.MASANIELLO]       <span class="cmt"># index 22</span>
+
+<span class="cmt"># Streaming: one tick at a time</span>
+builder.<span class="fn">update_recommended_f</span>(<span class="num">0.42</span>)
+tick_obs = builder.<span class="fn">build_from_tick</span>(price=<span class="num">512.34</span>, high=<span class="num">513.10</span>, low=<span class="num">511.80</span>)
+<span class="kw">if</span> tick_obs:
+    <span class="fn">print</span>(tick_obs.regime_label, tick_obs.markov_features)</code></pre>
+</div>
+
+<!-- ═══════════════════════════ OBS: FEATURES ══════════════════════════════════ -->
+<div class="page" id="page-obs-features">
+  <h1>Feature <span class="accent-word">Table</span></h1>
+  <p>All 24 features in index order. The <code>F</code> namespace provides named constants — always prefer <code>F.VOL_PROB_LOW</code> over the magic number <code>14</code>.</p>
+
+  <div class="table-wrap"><table>
+    <thead><tr><th>Index</th><th>F.constant</th><th>Feature name</th><th>Range</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td>0</td><td><code>F.LOG_RET_1</code></td><td>log_return_1bar</td><td>(−∞, +∞)</td><td>1-bar log return: log(p_t / p_{t-1})</td></tr>
+      <tr><td>1</td><td><code>F.LOG_RET_3</code></td><td>log_return_3bar</td><td>(−∞, +∞)</td><td>Sum of last 3 log returns</td></tr>
+      <tr><td>2</td><td><code>F.LOG_RET_10</code></td><td>log_return_10bar</td><td>(−∞, +∞)</td><td>Sum of last 10 log returns</td></tr>
+      <tr><td>3</td><td><code>F.NORMALISED_ATR</code></td><td>normalised_atr</td><td>[0, +∞)</td><td>ATR(14) / close price — vol normalised by level</td></tr>
+      <tr><td>4</td><td><code>F.ROLLING_VOL_20</code></td><td>rolling_vol_20</td><td>[0, +∞)</td><td>20-bar return std × √252 (annualised)</td></tr>
+      <tr><td>5</td><td><code>F.EMA_DISTANCE</code></td><td>ema_distance</td><td>(−∞, +∞)</td><td>(price − EMA20) / EMA20 — trend deviation</td></tr>
+      <tr><td>6</td><td><code>F.HHLL_SCORE</code></td><td>hhll_score</td><td>[−1, 1]</td><td>HH/HL vs LH/LL structure score. +1 = perfect uptrend structure</td></tr>
+      <tr><td>7</td><td><code>F.VOL_REGIME_PCT</code></td><td>vol_regime_percentile</td><td>[0, 1]</td><td>Percentile rank of current vol vs 252-bar rolling history</td></tr>
+      <tr><td>8</td><td><code>F.ATR_VS_BASELINE</code></td><td>atr_vs_baseline</td><td>[0, +∞)</td><td>ATR(14) / ATR(252-bar mean) — vol relative to long-run baseline</td></tr>
+      <tr><td>9</td><td><code>F.VOL_TREND_SLOPE</code></td><td>vol_trend_slope</td><td>(−∞, +∞)</td><td>Standardised linear slope of 10-bar rolling 5-bar vol. Positive = expanding vol</td></tr>
+      <tr><td>10</td><td><code>F.REGIME_PROB_0</code></td><td>regime_prob_0</td><td>[0, 1]</td><td>Raw HMM state 0 posterior (unsorted, vol HMM)</td></tr>
+      <tr><td>11</td><td><code>F.REGIME_PROB_1</code></td><td>regime_prob_1</td><td>[0, 1]</td><td>Raw HMM state 1 posterior</td></tr>
+      <tr><td>12</td><td><code>F.REGIME_PROB_2</code></td><td>regime_prob_2</td><td>[0, 1]</td><td>Raw HMM state 2 posterior</td></tr>
+      <tr><td>13</td><td><code>F.REGIME_PROB_3</code></td><td>regime_prob_3</td><td>[0, 1]</td><td>Raw HMM state 3 posterior</td></tr>
+      <tr style="background:rgba(0,212,255,0.04)"><td><strong>14</strong></td><td><code>F.VOL_PROB_LOW</code></td><td><strong>vol_prob_low</strong></td><td>[0, 1]</td><td>P(low vol regime) — Markov feature, must be dynamic</td></tr>
+      <tr style="background:rgba(0,212,255,0.04)"><td><strong>15</strong></td><td><code>F.VOL_PROB_MEDIUM</code></td><td><strong>vol_prob_medium</strong></td><td>[0, 1]</td><td>P(med_low + med_high combined) — Markov feature</td></tr>
+      <tr style="background:rgba(0,212,255,0.04)"><td><strong>16</strong></td><td><code>F.VOL_PROB_HIGH</code></td><td><strong>vol_prob_high</strong></td><td>[0, 1]</td><td>P(high vol regime) — Markov feature</td></tr>
+      <tr style="background:rgba(0,212,255,0.04)"><td><strong>17</strong></td><td><code>F.TREND_PROB_DOWN</code></td><td><strong>trend_prob_down</strong></td><td>[0, 1]</td><td>P(strong_bear + ½·bear) — Markov feature</td></tr>
+      <tr style="background:rgba(0,212,255,0.04)"><td><strong>18</strong></td><td><code>F.TREND_PROB_NEUTRAL</code></td><td><strong>trend_prob_neutral</strong></td><td>[0, 1]</td><td>P(½·bear + ½·bull) — Markov feature</td></tr>
+      <tr style="background:rgba(0,212,255,0.04)"><td><strong>19</strong></td><td><code>F.TREND_PROB_UP</code></td><td><strong>trend_prob_up</strong></td><td>[0, 1]</td><td>P(½·bull + strong_bull) — Markov feature</td></tr>
+      <tr><td>20</td><td><code>F.REGIME_QUALITY</code></td><td>regime_quality</td><td>[0, 1]</td><td>HMM confidence = max(vol_probs) × max(trend_probs)</td></tr>
+      <tr><td>21</td><td><code>F.STATE_CONFIDENCE</code></td><td>state_confidence</td><td>[0, 1]</td><td>Same as regime_quality (available as separate slot for downstream use)</td></tr>
+      <tr><td>22</td><td><code>F.MASANIELLO</code></td><td>masaniello_pressure</td><td>[0, 0.25]</td><td>M_i = f* × (1 − f*). Peaks at 0.25 when f=0.5 (max sizing uncertainty)</td></tr>
+      <tr><td>23</td><td><code>F.DRAWDOWN_FACTOR</code></td><td>drawdown_factor</td><td>[−1, 0]</td><td>DD_i = (price − peak) / peak. Zero at new highs, −1 at 100% drawdown</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="callout callout-info">
+    <div class="callout-icon">ℹ</div>
+    <div class="callout-body">
+      <strong>4-state → 3-bucket aggregation for Markov features</strong>
+      The HMM has 4 vol states and 4 trend states, but the observation uses 3 buckets
+      to match the original spec indices 14–19. Aggregation: <code>medium = med_low + med_high</code>,
+      <code>down = strong_bear + ½·bear</code>, <code>neutral = ½·bear + ½·bull</code>,
+      <code>up = ½·bull + strong_bull</code>. Each trio is re-normalised to sum to 1.0.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ OBS: BUILDER ═══════════════════════════════════ -->
+<div class="page" id="page-obs-builder">
+  <h1>Builder <span class="accent-word">API</span></h1>
+
+  <h2>InferenceObservationBuilder</h2>
+
+  <h3>Constructor</h3>
+  <div class="param"><span class="param-name">window</span><span class="param-type">int</span><span class="param-opt">optional</span><div class="param-desc">Rolling price buffer size. Older bars are evicted once full.<div class="param-default">Default: 200</div></div></div>
+  <div class="param"><span class="param-name">refit_every</span><span class="param-type">int</span><span class="param-opt">optional</span><div class="param-desc">Re-fit the HMM every N bars in the background.<div class="param-default">Default: 50</div></div></div>
+  <div class="param"><span class="param-name">n_hmm_states</span><span class="param-type">int</span><span class="param-opt">optional</span><div class="param-desc">Number of HMM states per dimension. Must match the trained RegimeHMM.<div class="param-default">Default: 4</div></div></div>
+  <div class="param"><span class="param-name">n_iter</span><span class="param-type">int</span><span class="param-opt">optional</span><div class="param-desc">EM iterations per HMM refit.<div class="param-default">Default: 100</div></div></div>
+  <div class="param"><span class="param-name">recommended_f</span><span class="param-type">float</span><span class="param-opt">optional</span><div class="param-desc">Current Kelly fraction for Masaniello feature (index 22). Update via <code>update_recommended_f()</code>.<div class="param-default">Default: 0.0</div></div></div>
+
+  <h3>Methods</h3>
+  <div class="param"><span class="param-name">seed(prices, high, low)</span><span class="param-type">→ self</span><span class="param-req">required first</span><div class="param-desc">Load historical bars and perform initial HMM fit. Must be called before <code>build()</code> or <code>build_from_tick()</code>.</div></div>
+  <div class="param"><span class="param-name">build(prices, high, low)</span><span class="param-type">→ Observation</span><span class="param-opt">–</span><div class="param-desc">Build observation from a full price window. Re-fits HMM if <code>bars_since_refit ≥ refit_every</code>.</div></div>
+  <div class="param"><span class="param-name">build_from_tick(price, high, low)</span><span class="param-type">→ Observation | None</span><span class="param-opt">–</span><div class="param-desc">Streaming variant. Appends one bar to buffer, returns <code>None</code> while warming up (< min_bars).</div></div>
+  <div class="param"><span class="param-name">update_recommended_f(f)</span><span class="param-type">→ None</span><span class="param-opt">–</span><div class="param-desc">Inject current Kelly fraction. Call this after every <code>PositionSizer.size()</code> call to keep Masaniello feature current.</div></div>
+
+  <h3>Properties</h3>
+  <div class="param"><span class="param-name">is_ready</span><span class="param-type">bool</span><span class="param-opt">–</span><div class="param-desc"><code>True</code> once HMM is fitted and a valid snapshot exists.</div></div>
+  <div class="param"><span class="param-name">last_snap</span><span class="param-type">RegimeSnapshot | None</span><span class="param-opt">–</span><div class="param-desc">Most recent HMM regime snapshot.</div></div>
+  <div class="param"><span class="param-name">refit_count</span><span class="param-type">int</span><span class="param-opt">–</span><div class="param-desc">Number of HMM refits performed.</div></div>
+
+  <h2>Observation</h2>
+  <div class="param"><span class="param-name">vector</span><span class="param-type">np.ndarray</span><span class="param-opt">–</span><div class="param-desc">Shape (24,). All values finite after seeding.</div></div>
+  <div class="param"><span class="param-name">markov_features</span><span class="param-type">np.ndarray</span><span class="param-opt">–</span><div class="param-desc">View of indices 14–19. Use this to check Markov feature health.</div></div>
+  <div class="param"><span class="param-name">is_markov_uniform(tol=0.05)</span><span class="param-type">bool</span><span class="param-opt">–</span><div class="param-desc">Returns <code>True</code> if std(markov_features) &lt; tol. Indicates the uniform-prior bug.</div></div>
+  <div class="param"><span class="param-name">vol_probs</span><span class="param-type">list[float]</span><span class="param-opt">–</span><div class="param-desc">4-state vol posteriors: [low, med_low, med_high, high].</div></div>
+  <div class="param"><span class="param-name">trend_probs</span><span class="param-type">list[float]</span><span class="param-opt">–</span><div class="param-desc">4-state trend posteriors: [strong_bear, bear, bull, strong_bull].</div></div>
+
+  <h2>F — Feature Index Namespace</h2>
+  <div class="code-label">python</div>
+  <pre><code><span class="kw">from</span> regime_platform.core.obs_builder <span class="kw">import</span> F
+
+<span class="cmt"># Always use named constants, never magic numbers</span>
+obs.vector[F.VOL_PROB_LOW]       <span class="cmt"># 14 — P(low vol)</span>
+obs.vector[F.TREND_PROB_DOWN]    <span class="cmt"># 17 — P(downtrend)</span>
+obs.vector[F.MASANIELLO]         <span class="cmt"># 22 — position pressure</span>
+obs.vector[F.DRAWDOWN_FACTOR]    <span class="cmt"># 23 — current DD from peak</span>
+obs.vector[F.MARKOV_SLICE]       <span class="cmt"># slice(14,20) — all 6 Markov features</span>
+F.N_FEATURES                     <span class="cmt"># 24</span></code></pre>
+</div>
+
+<!-- ═══════════════════════════ OBS: MARKOV GUARD ════════════════════════════════ -->
+<div class="page" id="page-obs-markov">
+  <h1>Markov <span class="accent-word">Guard</span></h1>
+  <p>Features 14–19 are the most diagnostically important in the observation vector. When they are uniform, the HMM is not contributing any signal — the policy is flying blind on regime information.</p>
+
+  <h2>The Uniform-Prior Bug</h2>
+  <div class="callout callout-danger">
+    <div class="callout-icon">⚠</div>
+    <div class="callout-body">
+      <strong>Symptom:</strong> Markov features (indices 14–19) show constant horizontal bands at ~0.33 in observation heatmaps, or <code>is_markov_uniform()</code> returns <code>True</code>.<br><br>
+      <strong>Cause:</strong> The HMM state is not being passed into the observation builder — it defaults to <code>[0.25, 0.25, 0.25, 0.25]</code> (uniform prior).<br><br>
+      <strong>Fix:</strong> Use <code>InferenceObservationBuilder</code> (stateful class) and call <code>seed()</code> before any <code>build()</code> call.
+    </div>
+  </div>
+
+  <h2>Failed Patterns (do not use)</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Anti-pattern</th><th>Why it fails</th></tr></thead>
+    <tbody>
+      <tr><td>Calling <code>build_observation(prices)</code> standalone</td><td>No HMM state passed → uniform [0.25]*4</td></tr>
+      <tr><td>Creating a new builder per bar</td><td>HMM re-fitted cold each time, no state continuity</td></tr>
+      <tr><td>Calling <code>build()</code> without <code>seed()</code></td><td>HMM not yet fitted → all-zero sentinel (not uniform, but still useless)</td></tr>
+      <tr><td>Disabling Markov features</td><td>Breaks model compatibility and removes regime signal entirely</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Detection at Runtime</h2>
+  <div class="code-label">python — guard check</div>
+  <pre><code>obs = builder.<span class="fn">build</span>(prices, high, low)
+
+<span class="cmt"># Method 1: built-in guard</span>
+<span class="kw">if</span> obs.<span class="fn">is_markov_uniform</span>():
+    <span class="fn">raise</span> RuntimeError(<span class="str">"Uniform-prior bug detected — check seed() was called"</span>)
+
+<span class="cmt"># Method 2: manual std check</span>
+markov_std = obs.markov_features.<span class="fn">std</span>()
+<span class="kw">assert</span> markov_std > <span class="num">0.05</span>, <span class="str">f"Markov features uniform: std={markov_std:.4f}"</span>
+
+<span class="cmt"># Method 3: visualise over time (heatmap)</span>
+<span class="cmt"># If indices 14-19 show flat horizontal bands → bug is active</span></code></pre>
+
+  <h2>Degenerate HMM Recovery</h2>
+  <p>The <code>RegimeHMM._sanitize_model()</code> method (called automatically after every EM fit) handles three degenerate failure modes:</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Failure</th><th>Cause</th><th>Fix applied</th></tr></thead>
+    <tbody>
+      <tr><td>NaN <code>startprob_</code></td><td>All observations assigned to one state; others get 0 probability mass</td><td>Replace with uniform 1/n</td></tr>
+      <tr><td>Zero <code>transmat_</code> rows</td><td>State never transitioned to from another state during EM</td><td>Replace row with uniform 1/n</td></tr>
+      <tr><td>NaN/zero <code>_covars_</code></td><td>Degenerate Gaussian (all identical observations in state)</td><td>Replace bad entries with 1e-3</td></tr>
+    </tbody>
+  </table></div>
+  <p>After sanitization, <code>predict_proba()</code> always returns finite values. If posteriors are still NaN after sanitization, <code>predict()</code> falls back to uniform and logs a warning — it never propagates NaN into the observation vector.</p>
+
+  <h2>Integration with Position Sizer</h2>
+  <div class="code-label">python — full pipeline with observation builder</div>
+  <pre><code><span class="kw">from</span> regime_platform.core.obs_builder <span class="kw">import</span> InferenceObservationBuilder, F
+<span class="kw">from</span> regime_platform.core.position_sizer <span class="kw">import</span> PositionSizer, PositionRequest
+
+builder = InferenceObservationBuilder(window=<span class="num">200</span>)
+sizer   = PositionSizer()
+
+builder.<span class="fn">seed</span>(prices, high, low)
+
+<span class="kw">for</span> bar <span class="kw">in</span> live_feed:
+    obs = builder.<span class="fn">build_from_tick</span>(bar.close, bar.high, bar.low)
+    <span class="kw">if</span> obs <span class="kw">is None</span>:
+        <span class="kw">continue</span>
+
+    <span class="cmt"># Get Kelly fraction from latest snap</span>
+    result = sizer.<span class="fn">size</span>(PositionRequest(
+        returns=returns,
+        kelly_fraction=<span class="num">0.5</span>,
+        regime=builder.last_snap,
+    ))
+
+    <span class="cmt"># Update Masaniello with current f*</span>
+    builder.<span class="fn">update_recommended_f</span>(result.recommended_f)
+
+    <span class="cmt"># Now the full 24-feature vector is ready for your policy</span>
+    <span class="kw">assert not</span> obs.<span class="fn">is_markov_uniform</span>()
+    policy_action = model.<span class="fn">predict</span>(obs.vector)</code></pre>
+</div>
+
+<!-- ══════════════════════════ SIM: OVERVIEW ═══════════════════════════════════ -->
+<div class="page" id="page-sim-overview">
+  <h1>Regime <span class="accent-word">Simulation</span></h1>
+  <div class="hero">
+    <div class="hero-eyebrow">// POST /simulate/{symbol} — core/simulator.py</div>
+    <p class="hero-desc">
+      Fits a 4-state HMM on historical prices, then simulates <code>n_paths</code>
+      forward trajectories using the fitted Markov transition matrix. Returns a
+      price fan, expected risk multiplier per step, and terminal return statistics.
+    </p>
+  </div>
+
+  <h2>How it works</h2>
+  <div class="flow">
+    <div class="flow-step"><div class="flow-step-num">01</div><div class="flow-step-title">Fit HMM</div><div class="flow-step-sub">4-state vol + trend on historical prices</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-step-num">02</div><div class="flow-step-title">Kronecker T</div><div class="flow-step-sub">16×16 combined transition matrix T_vol ⊗ T_trend</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-step-num">03</div><div class="flow-step-title">Monte Carlo</div><div class="flow-step-sub">n_paths × horizon forward steps</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-step-num">04</div><div class="flow-step-title">Aggregate</div><div class="flow-step-sub">Price fan · VaR · regime occupancy</div></div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="endpoint-method m-post">POST</span>
+      <span class="endpoint-path">/simulate/{symbol}</span>
+      <span class="endpoint-summary">Monte Carlo regime transition simulation</span>
+    </div>
+    <div class="endpoint-body">
+      <h3>Request Body</h3>
+      <div class="param"><span class="param-name">prices</span><span class="param-type">float[]</span><span class="param-req">required</span><div class="param-desc">Min 81 price bars. Used to fit the HMM and calibrate per-regime return distributions.</div></div>
+      <div class="param"><span class="param-name">horizon</span><span class="param-type">int</span><span class="param-opt">optional</span><div class="param-desc">Forward bars to simulate.<div class="param-default">Default: 20 · Range: [1, 252]</div></div></div>
+      <div class="param"><span class="param-name">n_paths</span><span class="param-type">int</span><span class="param-opt">optional</span><div class="param-desc">Monte Carlo paths. More paths = tighter fan, slower response.<div class="param-default">Default: 500 · Range: [50, 5000]</div></div></div>
+      <div class="param"><span class="param-name">seed</span><span class="param-type">int</span><span class="param-opt">optional</span><div class="param-desc">Random seed for reproducible results.<div class="param-default">Default: 42</div></div></div>
+      <div class="param"><span class="param-name">current_price</span><span class="param-type">float</span><span class="param-opt">optional</span><div class="param-desc">Override starting price. Defaults to prices[-1].</div></div>
+
+      <h3>Response</h3>
+      <div class="param"><span class="param-name">price_p5/p25/median/p75/p95</span><span class="param-type">float[]</span><span class="param-opt">–</span><div class="param-desc">Price fan at each of the `horizon` forward steps.</div></div>
+      <div class="param"><span class="param-name">expected_risk_mult</span><span class="param-type">float[]</span><span class="param-opt">–</span><div class="param-desc">Mean risk multiplier across all paths at each step.</div></div>
+      <div class="param"><span class="param-name">return_mean/std/var95/cvar95</span><span class="param-type">float</span><span class="param-opt">–</span><div class="param-desc">Terminal return distribution statistics.</div></div>
+      <div class="param"><span class="param-name">terminal_regime_mode</span><span class="param-type">string</span><span class="param-opt">–</span><div class="param-desc">Most likely regime at end of simulation horizon.</div></div>
+      <div class="param"><span class="param-name">pct_paths_positive</span><span class="param-type">float</span><span class="param-opt">–</span><div class="param-desc">Fraction of paths with positive cumulative return at horizon.</div></div>
+      <div class="param"><span class="param-name">max_drawdown_mean</span><span class="param-type">float</span><span class="param-opt">–</span><div class="param-desc">Mean maximum drawdown across all simulated paths. Negative value.</div></div>
+      <div class="param"><span class="param-name">step_dominant_regime</span><span class="param-type">string[]</span><span class="param-opt">–</span><div class="param-desc">Most likely regime at each forward step.</div></div>
+
+      <h3>Example</h3>
+      <div class="code-label">json — response excerpt</div>
+      <pre><code>{
+  <span class="key">"current_regime"</span>:       <span class="str">"low_vol_bull"</span>,
+  <span class="key">"terminal_regime_mode"</span>: <span class="str">"med_low_vol_bull"</span>,
+  <span class="key">"price_median"</span>:         [<span class="num">513.1</span>, <span class="num">514.2</span>, ..., <span class="num">521.8</span>],
+  <span class="key">"price_p5"</span>:            [<span class="num">498.3</span>, <span class="num">495.1</span>, ..., <span class="num">489.2</span>],
+  <span class="key">"price_p95"</span>:           [<span class="num">527.4</span>, <span class="num">531.8</span>, ..., <span class="num">558.1</span>],
+  <span class="key">"return_mean"</span>:          <span class="num">0.0154</span>,
+  <span class="key">"return_var95"</span>:         <span class="num">0.0537</span>,
+  <span class="key">"pct_paths_positive"</span>:   <span class="num">0.635</span>,
+  <span class="key">"max_drawdown_mean"</span>:    <span class="num">-0.0377</span>
+}</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ PORTFOLIO ═══════════════════════════════════════ -->
+<div class="page" id="page-portfolio-overview">
+  <h1>Portfolio <span class="accent-word">View</span></h1>
+  <div class="hero">
+    <div class="hero-eyebrow">// GET /portfolio — services/portfolio_service.py</div>
+    <p class="hero-desc">
+      Aggregates regime state, risk metrics, and position sizes across all active
+      streaming sessions. Returns per-symbol breakdowns plus portfolio-level risk flags.
+    </p>
+  </div>
+
+  <div class="callout callout-info">
+    <div class="callout-icon">ℹ</div>
+    <div class="callout-body"><strong>Prerequisite:</strong> Symbols must be seeded via <code>POST /stream/seed</code> before appearing in the portfolio view.</div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header">
+      <span class="endpoint-method m-get">GET</span>
+      <span class="endpoint-path">/portfolio</span>
+      <span class="endpoint-summary">Aggregated multi-symbol regime + risk summary</span>
+    </div>
+    <div class="endpoint-body">
+      <h3>Query Parameters</h3>
+      <div class="param"><span class="param-name">symbols</span><span class="param-type">string</span><span class="param-opt">optional</span><div class="param-desc">Comma-separated symbol list. Omit to include all active sessions.</div></div>
+      <div class="param"><span class="param-name">kelly_fraction</span><span class="param-type">float</span><span class="param-opt">optional</span><div class="param-desc"><div class="param-default">Default: 0.5</div></div></div>
+      <div class="param"><span class="param-name">target_vol</span><span class="param-type">float</span><span class="param-opt">optional</span><div class="param-desc"><div class="param-default">Default: 0.15</div></div></div>
+
+      <h3>Response — risk flags</h3>
+      <div class="param"><span class="param-name">high_risk_count</span><span class="param-type">int</span><span class="param-opt">–</span><div class="param-desc">Number of symbols with risk_multiplier &lt; 0.5.</div></div>
+      <div class="param"><span class="param-name">concentration_flag</span><span class="param-type">bool</span><span class="param-opt">–</span><div class="param-desc">True if any symbol has recommended_f &gt; 40%.</div></div>
+      <div class="param"><span class="param-name">regime_divergence_flag</span><span class="param-type">bool</span><span class="param-opt">–</span><div class="param-desc">True when portfolio spans many different regime buckets (normalised vol_state entropy &gt; 0.75).</div></div>
+      <div class="param"><span class="param-name">active_alerts</span><span class="param-type">string[]</span><span class="param-opt">–</span><div class="param-desc">Symbols that recently underwent a regime change.</div></div>
+      <div class="param"><span class="param-name">portfolio_var95</span><span class="param-type">float</span><span class="param-opt">–</span><div class="param-desc">√(ΣVaR²) — portfolio VaR under independence assumption.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════ AUTH ══════════════════════════════════════════ -->
+<div class="page" id="page-auth-overview">
+  <h1>Auth / <span class="accent-word">JWT</span></h1>
+  <div class="hero">
+    <div class="hero-eyebrow">// auth/jwt_auth.py — routers/auth_router.py</div>
+    <p class="hero-desc">
+      HS256 JWT authentication with role-based access control.
+      Set <code>AUTH_ENABLED=false</code> to bypass in development.
+      Configure users via <code>AUTH_USERS</code> env var.
+    </p>
+  </div>
+
+  <h2>Configuration</h2>
+  <div class="code-label">environment variables</div>
+  <pre><code>JWT_SECRET_KEY=your-signing-secret        <span class="cmt"># required</span>
+JWT_EXPIRE_MINS=60                         <span class="cmt"># token lifetime (default 60)</span>
+AUTH_USERS=admin:pass:admin,viewer:p:viewer <span class="cmt"># user:pass:role CSV</span>
+API_KEYS=svc-key-1,svc-key-2              <span class="cmt"># service-to-service keys</span>
+AUTH_ENABLED=false                         <span class="cmt"># dev mode — disables all auth</span></code></pre>
+
+  <h2>Roles</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Role</th><th>HTTP endpoints</th><th>WebSocket</th></tr></thead>
+    <tbody>
+      <tr><td><code>admin</code></td><td>All (read + write + admin)</td><td>Full access</td></tr>
+      <tr><td><code>trader</code></td><td>Read + write (seed, tick, simulate)</td><td>Full access</td></tr>
+      <tr><td><code>viewer</code></td><td>Read-only (regime, portfolio, sse)</td><td>Subscribe only</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="endpoint-method m-post">POST</span><span class="endpoint-path">/auth/token</span><span class="endpoint-summary">Issue a JWT</span></div>
+    <div class="endpoint-body">
+      <p>OAuth2 password form (Content-Type: application/x-www-form-urlencoded). Fields: <code>username</code>, <code>password</code>.</p>
+      <div class="code-label">curl</div>
+      <pre><code>curl -X POST http://localhost:8000/auth/token   -d "username=trader1&password=pass123"</code></pre>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="endpoint-method m-get">GET</span><span class="endpoint-path">/auth/me</span><span class="endpoint-summary">Verify token + return user info</span></div>
+    <div class="endpoint-body">
+      <p>Pass the Bearer token to confirm it is valid and inspect role.</p>
+    </div>
+  </div>
+
+  <h2>Protecting endpoints</h2>
+  <div class="code-label">python — HTTP</div>
+  <pre><code><span class="kw">from</span> regime_platform.auth.jwt_auth <span class="kw">import</span> get_current_user, require_write
+
+<span class="cmt"># Read-only — any authenticated user</span>
+<span class="kw">@router</span>.get(<span class="str">"/endpoint"</span>)
+<span class="kw">async def</span> <span class="fn">handler</span>(user=Depends(get_current_user)):
+    ...
+
+<span class="cmt"># Write — trader or admin only</span>
+<span class="kw">@router</span>.post(<span class="str">"/write"</span>)
+<span class="kw">async def</span> <span class="fn">writer</span>(user=Depends(require_write)):
+    ...</code></pre>
+
+  <div class="code-label">javascript — WebSocket with token</div>
+  <pre><code><span class="cmt">// Pass JWT as query param</span>
+<span class="kw">const</span> ws = <span class="kw">new</span> <span class="fn">WebSocket</span>(<span class="str">`ws://localhost:8000/ws/SPY?token=${jwt}`</span>);
+
+<span class="cmt">// Or pass as API key</span>
+<span class="kw">const</span> ws2 = <span class="kw">new</span> <span class="fn">WebSocket</span>(<span class="str">`ws://localhost:8000/ws/SPY?api_key=svc-key-1`</span>);</code></pre>
+</div>
+
+<!-- ════════════════════════════ REDIS ═════════════════════════════════════════ -->
+<div class="page" id="page-redis-overview">
+  <h1>Redis <span class="accent-word">Persistence</span></h1>
+  <div class="hero">
+    <div class="hero-eyebrow">// services/redis_persistence.py — REDIS_URL env var</div>
+    <p class="hero-desc">
+      Optional Redis Streams persistence layer. When <code>REDIS_URL</code> is set,
+      price buffers survive process restarts and can be shared across multiple
+      uvicorn workers. Without it, the system operates entirely in-memory with
+      no performance overhead.
+    </p>
+  </div>
+
+  <div class="callout callout-tip">
+    <div class="callout-icon">✦</div>
+    <div class="callout-body"><strong>Zero configuration overhead.</strong> If <code>REDIS_URL</code> is not set, all <code>RedisPersistence</code> methods are no-ops. No code changes needed — just add the env var to enable.</div>
+  </div>
+
+  <h2>How it works</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Event</th><th>Redis operation</th><th>Key pattern</th></tr></thead>
+    <tbody>
+      <tr><td>App startup</td><td><code>XREVRANGE</code> last N entries → hydrate buffer</td><td><code>regime:prices:{symbol}</code></td></tr>
+      <tr><td>Each tick</td><td><code>XADD</code> with approximate MAXLEN cap</td><td><code>regime:prices:{symbol}</code></td></tr>
+      <tr><td>Session seed</td><td><code>HSET</code> session config</td><td><code>regime:meta:{symbol}</code></td></tr>
+      <tr><td>Session remove</td><td><code>DEL</code> meta (price stream preserved by default)</td><td><code>regime:meta:{symbol}</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Startup restore flow</h2>
+  <div class="code-label">main_v3.py lifespan</div>
+  <pre><code><span class="cmt"># On startup, main_v3.py automatically:</span>
+<span class="num">1</span>. Lists all symbols with persisted streams in Redis
+<span class="num">2</span>. Loads session config from Redis meta hash
+<span class="num">3</span>. Restores price buffer via XREVRANGE
+<span class="num">4</span>. Re-fits HMM if ≥ 81 bars are available
+<span class="num">5</span>. Sessions are immediately ready for incoming ticks</code></pre>
+
+  <h2>Error policy</h2>
+  <p>All Redis operations are wrapped in try/except. A Redis failure never raises in the tick path — it logs a warning at DEBUG level and the system continues with in-memory state. Redis is persistence, not availability.</p>
+
+  <h2>Multi-worker deployment</h2>
+  <div class="callout callout-warning">
+    <div class="callout-icon">⚠</div>
+    <div class="callout-body">
+      <strong>With Redis enabled</strong>, multiple uvicorn workers can share price history — each worker restores the same buffer on startup. However, the in-memory <code>SessionRegistry</code> (and therefore WebSocket subscribers) is still per-worker. For true multi-worker real-time streaming, use a single worker or add a pub/sub layer (e.g. Redis Pub/Sub for tick fan-out).
+    </div>
+  </div>
+</div>
+
+<!-- ═════════════════════════ GPU HMM ══════════════════════════════════════════ -->
+<div class="page" id="page-gpu-overview">
+  <h1>GPU <span class="accent-word">HMM Engine</span></h1>
+  <div class="hero">
+    <div class="hero-eyebrow">// core/gpu_engine.py — pomegranate PyTorch backend</div>
+    <p class="hero-desc">
+      Transparent GPU acceleration for HMM fitting. When pomegranate ≥ 1.0 and a
+      CUDA or MPS device are available, all HMM operations run on GPU — typically
+      10–50× faster on large datasets. Falls back to hmmlearn on CPU with zero
+      code changes.
+    </p>
+  </div>
+
+  <h2>Auto-selection factory</h2>
+  <div class="code-label">python</div>
+  <pre><code><span class="kw">from</span> regime_platform.core.gpu_engine <span class="kw">import</span> create_regime_hmm
+
+<span class="cmt"># Auto-selects GpuRegimeHMM (pomegranate) or RegimeHMM (hmmlearn)</span>
+model = <span class="fn">create_regime_hmm</span>()        <span class="cmt"># GPU if available</span>
+model = <span class="fn">create_regime_hmm</span>(force_cpu=<span class="kw">True</span>)  <span class="cmt"># always hmmlearn</span>
+
+<span class="cmt"># Same interface regardless of backend</span>
+model.<span class="fn">fit</span>(prices)
+snap = model.<span class="fn">predict</span>(prices)
+<span class="fn">print</span>(snap.regime_label, snap.risk_multiplier)</code></pre>
+
+  <h2>Install for GPU support</h2>
+  <div class="code-label">bash</div>
+  <pre><code><span class="cmt"># NVIDIA CUDA</span>
+pip install pomegranate torch
+
+<span class="cmt"># Apple Silicon (MPS)</span>
+pip install pomegranate torch   <span class="cmt"># MPS detected automatically</span></code></pre>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="endpoint-method m-get">GET</span><span class="endpoint-path">/gpu/capabilities</span><span class="endpoint-summary">Hardware + backend report</span></div>
+    <div class="endpoint-body">
+      <div class="code-label">response</div>
+      <pre><code>{
+  <span class="key">"pomegranate_installed"</span>: <span class="kw">false</span>,
+  <span class="key">"cuda_available"</span>:        <span class="kw">false</span>,
+  <span class="key">"mps_available"</span>:         <span class="kw">false</span>,
+  <span class="key">"active_device"</span>:         <span class="str">"cpu"</span>,
+  <span class="key">"hmm_backend"</span>:           <span class="str">"RegimeHMM (hmmlearn)"</span>
+}</code></pre>
+    </div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="endpoint-method m-post">POST</span><span class="endpoint-path">/gpu/benchmark</span><span class="endpoint-summary">Fit + predict latency benchmark</span></div>
+    <div class="endpoint-body">
+      <div class="param"><span class="param-name">n_bars</span><span class="param-type">int</span><span class="param-opt">optional</span><div class="param-desc">Synthetic price series length. <div class="param-default">Default: 500 · Range: [81, 50000]</div></div></div>
+      <div class="param"><span class="param-name">n_iterations</span><span class="param-type">int</span><span class="param-opt">optional</span><div class="param-desc">Repetitions for mean latency. <div class="param-default">Default: 3</div></div></div>
+      <div class="param"><span class="param-name">force_cpu</span><span class="param-type">bool</span><span class="param-opt">optional</span><div class="param-desc">Benchmark hmmlearn CPU baseline. Useful for measuring GPU speedup. <div class="param-default">Default: false</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════ LIVE FEEDS ════════════════════════════════════════ -->
+<div class="page" id="page-feeds-overview">
+  <h1>Live <span class="accent-word">Feed Adapters</span></h1>
+  <div class="hero">
+    <div class="hero-eyebrow">// adapters/feed_adapters.py — Alpaca · Binance · Interactive Brokers</div>
+    <p class="hero-desc">
+      Async OHLCV feed adapters that stream live bars directly into seeded
+      <code>StreamSession</code>s. Each adapter reconnects automatically on
+      disconnect with exponential backoff.
+    </p>
+  </div>
+
+  <h2>Workflow</h2>
+  <div class="flow">
+    <div class="flow-step"><div class="flow-step-num">01</div><div class="flow-step-title">Seed</div><div class="flow-step-sub">POST /stream/seed per symbol</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-step-num">02</div><div class="flow-step-title">Start Feed</div><div class="flow-step-sub">POST /feeds/start with adapter config</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-step-num">03</div><div class="flow-step-title">Auto-route</div><div class="flow-step-sub">FeedManager → session.tick(close, ts)</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-step-num">04</div><div class="flow-step-title">Subscribe</div><div class="flow-step-sub">WS /ws/SPY or SSE /sse/SPY</div></div>
+  </div>
+
+  <h2>Supported adapters</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Source</th><th>Asset classes</th><th>Install</th><th>Auth env vars</th></tr></thead>
+    <tbody>
+      <tr><td><code>alpaca</code></td><td>US equities, crypto</td><td><code>pip install alpaca-py</code></td><td><code>ALPACA_API_KEY, ALPACA_SECRET_KEY</code></td></tr>
+      <tr><td><code>binance</code></td><td>Crypto spot (all pairs)</td><td><code>pip install websockets</code></td><td>None (public stream)</td></tr>
+      <tr><td><code>ib</code></td><td>Equities, futures, FX, options</td><td><code>pip install ib_async</code></td><td><code>IB_HOST, IB_PORT, IB_CLIENT_ID</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="endpoint-method m-post">POST</span><span class="endpoint-path">/feeds/start</span><span class="endpoint-summary">Start live feed adapters</span></div>
+    <div class="endpoint-body">
+      <div class="code-label">json — request body (array of feed configs)</div>
+      <pre><code>[
+  { <span class="key">"source"</span>: <span class="str">"alpaca"</span>,  <span class="key">"symbols"</span>: [<span class="str">"SPY"</span>, <span class="str">"QQQ"</span>], <span class="key">"bar_size"</span>: <span class="str">"1Min"</span> },
+  { <span class="key">"source"</span>: <span class="str">"binance"</span>, <span class="key">"symbols"</span>: [<span class="str">"BTCUSDT"</span>],       <span class="key">"bar_size"</span>: <span class="str">"1m"</span>   }
+]</code></pre>
+      <div class="callout callout-warning"><div class="callout-icon">⚠</div><div class="callout-body">Symbols must be seeded via <code>POST /stream/seed</code> before starting feeds. Bars for unseeded symbols are silently dropped.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════ CORRELATION ═══════════════════════════════════════ -->
+<div class="page" id="page-corr-overview">
+  <h1>Correlation <span class="accent-word">Regime</span></h1>
+  <div class="hero">
+    <div class="hero-eyebrow">// core/correlation_regime.py — POST /correlation/detect</div>
+    <p class="hero-desc">
+      Detects portfolio-level correlation regimes using dynamic conditional correlation
+      (DCC). Catches the structural shift where diversification collapses — something
+      per-asset HMMs miss entirely.
+    </p>
+  </div>
+
+  <h2>Correlation regime labels</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Label</th><th>Mean |ρ|</th><th>Multiplier</th><th>Interpretation</th></tr></thead>
+    <tbody>
+      <tr><td><code>low_corr</code></td><td>&lt; 0.20</td><td>1.00×</td><td>Normal market — diversification working</td></tr>
+      <tr><td><code>mid_corr</code></td><td>0.20–0.50</td><td>0.85×</td><td>Moderate comovement — mild caution</td></tr>
+      <tr><td><code>high_corr</code></td><td>0.50–0.75</td><td>0.60×</td><td>Elevated stress — diversification eroding</td></tr>
+      <tr><td><code>crisis</code></td><td>&gt; 0.75</td><td>0.35×</td><td>Crash regime — all assets moving together</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="endpoint-method m-post">POST</span><span class="endpoint-path">/correlation/detect</span><span class="endpoint-summary">Detect portfolio correlation regime</span></div>
+    <div class="endpoint-body">
+      <div class="param"><span class="param-name">symbols</span><span class="param-type">string[]</span><span class="param-req">required</span><div class="param-desc">Asset labels. Min 2, max 50.</div></div>
+      <div class="param"><span class="param-name">returns_matrix</span><span class="param-type">float[][]</span><span class="param-req">required</span><div class="param-desc">(n_bars × n_assets) log-return matrix. Outer list = bars.</div></div>
+      <div class="param"><span class="param-name">window</span><span class="param-type">int</span><span class="param-opt">optional</span><div class="param-desc">Rolling correlation window. <div class="param-default">Default: 60 · Range: [20, 252]</div></div></div>
+      <h3>Key response fields</h3>
+      <div class="param"><span class="param-name">corr_regime</span><span class="param-type">string</span><span class="param-opt">–</span><div class="param-desc">Dominant correlation regime label.</div></div>
+      <div class="param"><span class="param-name">blended_risk_multiplier</span><span class="param-type">float</span><span class="param-opt">–</span><div class="param-desc">mean(per-asset mult) × corr_risk_multiplier — the portfolio-level risk scalar.</div></div>
+      <div class="param"><span class="param-name">mean_abs_correlation</span><span class="param-type">float</span><span class="param-opt">–</span><div class="param-desc">Current mean |ρ| across all asset pairs.</div></div>
+      <div class="param"><span class="param-name">correlation_matrix</span><span class="param-type">float[][]</span><span class="param-opt">–</span><div class="param-desc">n_assets × n_assets Pearson correlation matrix at last bar.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════ OPTIMISER ═════════════════════════════════════════ -->
+<div class="page" id="page-opt-overview">
+  <h1>Portfolio <span class="accent-word">Optimisation</span></h1>
+  <div class="hero">
+    <div class="hero-eyebrow">// core/portfolio_optimiser.py — POST /optimise/full</div>
+    <p class="hero-desc">
+      Drawdown-controlled regime-aware maximum Sharpe optimisation. Three regime
+      layers applied simultaneously: regime-adjusted expected returns, per-asset
+      weight bounds, and correlation-regime gross exposure scaling.
+    </p>
+  </div>
+
+  <h2>Three regime layers</h2>
+  <div class="pipeline-layer"><div class="pipeline-n">01</div><div class="pipeline-name">Adjusted μ</div><div class="pipeline-fn">μ_adj = μ_raw × risk_multiplier</div><div class="pipeline-output">Bull regimes get full μ; bear/high-vol penalised</div></div>
+  <div class="pipeline-layer"><div class="pipeline-n">02</div><div class="pipeline-name">Weight bounds</div><div class="pipeline-fn">ub_i = max_weight × interp(mult, [0.10,1.75], [0.25,1.00])</div><div class="pipeline-output">Tighter per-asset ceiling in high-risk regimes</div></div>
+  <div class="pipeline-layer"><div class="pipeline-n">03</div><div class="pipeline-name">Exposure scalar</div><div class="pipeline-fn">Σw = exposure(corr_regime)</div><div class="pipeline-output">Crisis → 50% gross exposure; low_corr → 100%</div></div>
+
+  <h2>Exposure by correlation regime</h2>
+  <div class="regime-matrix" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
+    <div class="regime-cell header">low_corr</div><div class="regime-cell header">mid_corr</div><div class="regime-cell header">high_corr</div><div class="regime-cell header">crisis</div>
+    <div class="regime-cell rm-high">1.00×</div><div class="regime-cell rm-mid">0.90×</div><div class="regime-cell rm-low">0.70×</div><div class="regime-cell rm-low">0.50×</div>
+  </div>
+
+  <div class="endpoint">
+    <div class="endpoint-header"><span class="endpoint-method m-post">POST</span><span class="endpoint-path">/optimise/full</span><span class="endpoint-summary">One-shot: correlation detect + optimise</span></div>
+    <div class="endpoint-body">
+      <div class="param"><span class="param-name">max_dd_limit</span><span class="param-type">float</span><span class="param-opt">optional</span><div class="param-desc">Maximum acceptable expected drawdown. <div class="param-default">Default: 0.20 (20%)</div></div></div>
+      <div class="param"><span class="param-name">max_weight</span><span class="param-type">float</span><span class="param-opt">optional</span><div class="param-desc">Default single-asset weight ceiling. <div class="param-default">Default: 0.40 (40%)</div></div></div>
+      <div class="param"><span class="param-name">risk_free_rate</span><span class="param-type">float</span><span class="param-opt">optional</span><div class="param-desc">Annualised risk-free rate for Sharpe. <div class="param-default">Default: 0.04</div></div></div>
+      <h3>Response — optimisation</h3>
+      <div class="param"><span class="param-name">weights</span><span class="param-type">float[]</span><span class="param-opt">–</span><div class="param-desc">Optimised portfolio weights (sum = regime_exposure).</div></div>
+      <div class="param"><span class="param-name">regime_adj_weights</span><span class="param-type">float[]</span><span class="param-opt">–</span><div class="param-desc">Weights further scaled by per-asset risk multiplier.</div></div>
+      <div class="param"><span class="param-name">dd_constraint_met</span><span class="param-type">bool</span><span class="param-opt">–</span><div class="param-desc">Whether the Cornish-Fisher CVaR proxy ≤ max_dd_limit.</div></div>
+      <div class="param"><span class="param-name">regime_exposure</span><span class="param-type">float</span><span class="param-opt">–</span><div class="param-desc">Total gross weight sum — reduced in crisis regimes.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ MASANIELLO SIZER ════════════════════════════════════ -->
+<div class="page" id="page-masaniello">
+  <h1>Dynamic <span class="accent-word">Masaniello</span> Sizer</h1>
+  <div class="hero">
+    <div class="hero-eyebrow">// core/position_sizer.py — DynamicMasanielloSizer</div>
+    <p class="hero-desc">
+      Stateful per-trade position sizing combining Masaniello batch progress,
+      model quality, drawdown protection, and volatility scaling into a single
+      formula. Fully integrated with <code>RegimeSnapshot</code>.
+    </p>
+  </div>
+
+  <h2>The Formula</h2>
+  <pre><code>f_i = β × (0.5 + M_i) × Q_i × DD_i × V_i</code></pre>
+
+  <div class="table-wrap"><table>
+    <thead><tr><th>Factor</th><th>Symbol</th><th>Formula</th><th>Clamp</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>Base risk</td><td>β</td><td><code>SizingConfig.base_risk</code> (default 0.50%)</td><td>—</td><td>Risk fraction anchor</td></tr>
+      <tr><td>Masaniello</td><td>M_i</td><td><code>(W − w) / (N − i + 1)</code></td><td>[0.0, 1.5]</td><td>Urgency: wins needed ÷ trades left</td></tr>
+      <tr><td>Quality</td><td>Q_i</td><td><code>prob_factor × regime_factor × conf_factor</code></td><td>product of clamps</td><td>Combined edge × regime × confidence gate</td></tr>
+      <tr><td>Drawdown</td><td>DD_i</td><td><code>clip(1 − dd / max_dd, 0.25, 1.0)</code></td><td>[0.25, 1.0]</td><td>Reduce size; never zero (floor 0.25)</td></tr>
+      <tr><td>Volatility</td><td>V_i</td><td><code>clip(ATR_base / ATR_current, 0.5, 1.5)</code></td><td>[0.5, 1.5]</td><td>Inverted ATR — high vol shrinks size</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="callout callout-info">
+    <div class="callout-icon">ℹ</div>
+    <div class="callout-body">
+      <strong>Why (0.5 + M_i)?</strong> This term guarantees a minimum sizing
+      multiplier of 0.5× base risk even when M_i = 0 (target already met, or first
+      trade in a relaxed batch). Position never collapses to zero from the Masaniello
+      factor alone.
+    </div>
+  </div>
+
+  <h2>Q_i — Quality Factor detail</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Sub-factor</th><th>Formula</th><th>Clamp</th><th>Source</th></tr></thead>
+    <tbody>
+      <tr><td>prob_factor</td><td><code>clip((p_win − min_prob) / 0.10, 0.0, 1.5)</code></td><td>[0.0, 1.5]</td><td>Estimated win probability</td></tr>
+      <tr><td>regime_factor</td><td><code>clip(regime_quality, 0.0, 1.5)</code></td><td>[0.0, 1.5]</td><td><code>RegimeSnapshot.risk_multiplier</code></td></tr>
+      <tr><td>conf_factor</td><td><code>clip(state_confidence, 0.0, 1.0)</code></td><td>[0.0, 1.0]</td><td><code>RegimeSnapshot.confidence</code></td></tr>
+    </tbody>
+  </table></div>
+  <p>Maximum Q_i = 1.5 × 1.5 × 1.0 = <strong>2.25</strong> (all factors maxed). Q_i = 0 when any sub-factor is 0 — the formula acts as a quality gate before any risk is allocated.</p>
+
+  <h2>Pre-flight Gates</h2>
+  <p>Checked in priority order before the formula runs. Each gate fires with a specific <code>.reason</code> string:</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>#</th><th>Gate</th><th>Condition</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Equity</td><td>equity &gt; 0</td></tr>
+      <tr><td>2</td><td>Stop distance</td><td>stop_distance_price &gt; 0</td></tr>
+      <tr><td>3</td><td>Point value</td><td>point_value &gt; 0</td></tr>
+      <tr><td>4</td><td>Regime floor</td><td>regime_quality ≥ regime_floor (default 0.50)</td></tr>
+      <tr><td>5</td><td>Min probability</td><td>p_win ≥ min_prob (default 0.50)</td></tr>
+      <tr><td>6</td><td>Min R/R</td><td>reward_risk ≥ min_rr (default 2.50)</td></tr>
+      <tr><td>7</td><td>Batch halt</td><td>batch not already halted</td></tr>
+      <tr><td>8</td><td>Drawdown halt</td><td>batch.drawdown &lt; batch_halt_dd (default 5%)</td></tr>
+      <tr><td>9</td><td>Edge</td><td>E = p·R − (1−p) &gt; 0</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Usage</h2>
+  <div class="code-label">python — with RegimeSnapshot</div>
+  <pre><code><span class="kw">from</span> regime_platform.core.position_sizer <span class="kw">import</span> (
+    DynamicMasanielloSizer, SizingConfig, BatchState
+)
+
+cfg   = SizingConfig(base_risk=<span class="num">0.005</span>, max_drawdown=<span class="num">0.10</span>, batch_size=<span class="num">5</span>, target_wins=<span class="num">3</span>)
+sizer = DynamicMasanielloSizer(cfg)
+sizer.batch.peak_equity = equity
+
+<span class="cmt"># Size one trade from a live RegimeSnapshot</span>
+result = sizer.<span class="fn">size_from_snapshot</span>(
+    snap=snap,                     <span class="cmt"># from RegimeHMM.predict()</span>
+    equity=<span class="num">100_000</span>,
+    stop_distance_price=<span class="num">2.50</span>,    <span class="cmt"># stop in price units</span>
+    point_value=<span class="num">50.0</span>,            <span class="cmt"># $ per point</span>
+    p_win=<span class="num">0.62</span>,
+    reward_risk=<span class="num">2.5</span>,
+    atr_baseline=<span class="num">12.0</span>,
+    atr_current=<span class="num">10.0</span>,
+)
+<span class="fn">print</span>(result.<span class="fn">summary</span>())
+<span class="cmt"># [✓ ALLOWED]  f=0.550%  $550  units=5.50  contracts=5  ...</span>
+
+<span class="cmt"># After trade resolves, record outcome</span>
+sizer.batch.<span class="fn">record</span>(result, outcome=<span class="kw">True</span>, pnl=<span class="num">625.0</span>)
+
+<span class="cmt"># After N trades, reset for next batch</span>
+sizer.batch.<span class="fn">reset</span>(equity=<span class="num">100_625</span>)</code></pre>
+
+  <h2>Monte Carlo Validation</h2>
+  <div class="code-label">python</div>
+  <pre><code><span class="kw">from</span> regime_platform.core.position_sizer <span class="kw">import</span> monte_carlo_batch
+
+stats = <span class="fn">monte_carlo_batch</span>(sizer, base_context, n_simulations=<span class="num">2000</span>, seed=<span class="num">42</span>)
+<span class="fn">print</span>(stats)
+<span class="cmt"># {
+#   "p_target_hit": 0.695,   # 69.5% of batches hit target_wins
+#   "p_halt": 0.000,         # 0% triggered drawdown halt
+#   "mean_pnl": 1759,
+#   "median_pnl": 1312,
+#   "p10_pnl": -186,
+#   "p90_pnl": 4021,
+#   "mean_max_dd": 0.0031,
+#   "sharpe_approx": 1.377
+# }</span></code></pre>
+</div>
+
+</main>
+
+<script>
+// ── Navigation ────────────────────────────────────────────
+function show(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-link, .nav-sub-link').forEach(l => l.classList.remove('active'));
+
+  const page = document.getElementById('page-' + id);
+  if (page) page.classList.add('active');
+
+  document.querySelectorAll('.nav-link, .nav-sub-link').forEach(l => {
+    if (l.getAttribute('onclick') && l.getAttribute('onclick').includes(`'${id}'`)) {
+      l.classList.add('active');
+    }
+  });
+
+  window.scrollTo({ top: 0 });
+  document.querySelector('main').scrollTop = 0;
+}
+
+// ── Progress bar ──────────────────────────────────────────
+function updateProgress() {
+  const main = document.querySelector('main');
+  const activePage = document.querySelector('.page.active');
+  if (!activePage) return;
+  const scrolled = activePage.scrollTop || window.scrollY;
+  const total = (activePage.scrollHeight || document.body.scrollHeight) - window.innerHeight;
+  const pct = total > 0 ? scrolled / total : 0;
+  document.getElementById('progress').style.transform = `scaleX(${Math.min(pct, 1)})`;
+}
+
+window.addEventListener('scroll', updateProgress);
+document.querySelector('main').addEventListener('scroll', updateProgress);
+
+// ── Copy buttons ──────────────────────────────────────────
+document.querySelectorAll('pre').forEach(pre => {
+  const btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  btn.textContent = 'copy';
+  btn.onclick = () => {
+    const text = pre.textContent.replace(/^copy$/, '').trim();
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 1800);
+    });
+  };
+  pre.style.position = 'relative';
+  pre.appendChild(btn);
+});
+</script>
+</body>
+</html>
