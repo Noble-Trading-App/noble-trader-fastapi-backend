@@ -8,7 +8,7 @@ from typing import Optional, Literal
 # ─── Shared ───────────────────────────────────────────────────────────────────
 
 class PricePayload(BaseModel):
-    prices: list[float] = Field(..., min_length=51, description="Ordered price series (OHLCV close preferred). Min 51 bars.")
+    prices: list[float] = Field(..., min_length=81, description="Ordered price series (OHLCV close preferred). Min 81 bars.")
     symbol: str = Field(default="UNKNOWN", description="Ticker symbol for labelling.")
 
     @field_validator("prices")
@@ -27,8 +27,8 @@ class RegimeRequest(PricePayload):
 
 class RegimeResponse(BaseModel):
     symbol: str
-    vol_probs: dict[str, float]     # {"low": x, "medium": y, "high": z}
-    trend_probs: dict[str, float]   # {"bear": x, "neutral": y, "bull": z}
+    vol_probs: dict[str, float]     # {"low": x, "med_low": x, "med_high": x, "high": z}
+    trend_probs: dict[str, float]   # {"strong_bear": x, "bear": x, "bull": x, "strong_bull": x}
     vol_state: str
     trend_state: str
     regime_label: str

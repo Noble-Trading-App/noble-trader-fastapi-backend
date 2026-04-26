@@ -8,8 +8,8 @@ from typing import Optional
 class SeedRequest(BaseModel):
     """Seed a symbol session with historical prices before streaming."""
     symbol: str
-    prices: list[float] = Field(..., min_length=51)
-    window: int = Field(default=500, ge=51, le=5000)
+    prices: list[float] = Field(..., min_length=81)
+    window: int = Field(default=500, ge=81, le=5000)
     kelly_fraction: float = Field(default=0.5, ge=0.1, le=1.0)
     target_vol: float = Field(default=0.15, gt=0, le=1.0)
     base_risk_limit: float = Field(default=0.02, gt=0, le=0.5)
