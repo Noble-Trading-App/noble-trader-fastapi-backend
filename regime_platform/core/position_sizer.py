@@ -80,7 +80,6 @@ from typing import List, Optional, Tuple
 
 import numpy as np
 
-##from __future__ import annotations
 try:
     from .regime_engine import RegimeSnapshot
 except ImportError:

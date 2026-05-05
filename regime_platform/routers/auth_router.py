@@ -4,6 +4,7 @@ Authentication endpoints.
   POST /auth/token   — issue a JWT (username/password or API key exchange)
   GET  /auth/me      — return current user info from token
   POST /auth/refresh — refresh a non-expired token
+  GET  /auth/clerk/me — return Clerk user info from Clerk JWT token
 
 In production, the /auth/token endpoint should validate against a real
 user store. The implementation here uses a configurable in-memory user
@@ -14,23 +15,44 @@ AUTH_USERS format (env var):
   e.g. "admin:secret123:admin,trader1:pass456:trader,readonly:pass:viewer"
 
 If AUTH_USERS is not set, the token endpoint is disabled and returns 503.
+
+Clerk Authentication:
+  - Uses CLERK_SECRET_KEY from .env.local
+  - Clerk tokens are verified using Clerk's JWKS endpoint
+  - POST /auth/clerk/verify — verify a Clerk JWT token
+  - GET  /auth/clerk/me — get current Clerk user info
 """
 
 from __future__ import annotations
+
 import os
-from fastapi import APIRouter, HTTPException, Depends, status
-from fastapi.security import OAuth2PasswordRequestForm
-from pydantic import BaseModel
 from typing import Optional
 
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import BaseModel
+
+from ..auth.clerk_auth import (
+    CLERK_AUTH_ENABLED,
+    CLERK_PUBLISHABLE_KEY,
+    ClerkTokenData,
+    get_current_clerk_user,
+    get_optional_clerk_user,
+    verify_clerk_token,
+)
 from ..auth.jwt_auth import (
-    create_access_token, get_current_user, make_login_response,
-    TokenData, AUTH_ENABLED, JWT_EXPIRE_MINS,
+    AUTH_ENABLED,
+    JWT_EXPIRE_MINS,
+    TokenData,
+    create_access_token,
+    get_current_user,
+    make_login_response,
 )
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 # ── In-memory user store (configurable via env) ─────────────────────────────
+
 
 def _load_users() -> dict[str, dict]:
     raw = os.getenv("AUTH_USERS", "")
@@ -42,26 +64,29 @@ def _load_users() -> dict[str, dict]:
             users[username] = {"password": password, "role": role}
     return users
 
+
 _USERS = _load_users()
 
 
 # ── Response models ──────────────────────────────────────────────────────────
 
+
 class TokenResponse(BaseModel):
     access_token: str
-    token_type:   str
-    expires_in:   int
-    sub:          str
-    role:         str
+    token_type: str
+    expires_in: int
+    sub: str
+    role: str
 
 
 class UserInfo(BaseModel):
-    sub:          str
-    role:         str
+    sub: str
+    role: str
     auth_enabled: bool
 
 
 # ── Endpoints ────────────────────────────────────────────────────────────────
+
 
 @router.post(
     "/token",
@@ -127,3 +152,141 @@ async def refresh(user: TokenData = Depends(get_current_user)):
     Only works if the current token is still valid (not yet expired).
     """
     return TokenResponse(**make_login_response(sub=user.sub, role=user.role))
+
+
+# ── Clerk Integration Response Models ────────────────────────────────────────
+
+
+class ClerkUserInfo(BaseModel):
+    """Clerk user information from JWT token."""
+
+    sub: str
+    role: str = "viewer"
+    email: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    username: Optional[str] = None
+    clerk_auth_enabled: bool = False
+
+
+class ClerkVerifyRequest(BaseModel):
+    """Request model for Clerk token verification."""
+
+    token: str
+
+
+class ClerkVerifyResponse(BaseModel):
+    """Response model for Clerk token verification."""
+
+    valid: bool
+    user: Optional[ClerkUserInfo] = None
+    error: Optional[str] = None
+
+
+# ── Clerk Authentication Endpoints ──────────────────────────────────────────
+
+
+@router.get(
+    "/clerk/me",
+    response_model=ClerkUserInfo,
+    summary="Return Clerk user info decoded from Clerk JWT token",
+    tags=["Clerk Authentication"],
+)
+async def clerk_me(user: ClerkTokenData = Depends(get_current_clerk_user)):
+    """
+    Returns the identity and metadata extracted from a valid Clerk JWT token.
+
+    Requires a valid Clerk JWT in the Authorization header:
+    ```
+    Authorization: Bearer <clerk_jwt_token>
+    ```
+
+    Returns user information including:
+    - sub: Clerk user ID
+    - email: User's email address
+    - first_name, last_name: User's name
+    - username: User's username
+    - role: User role (from token claims or default 'viewer')
+    """
+    return ClerkUserInfo(
+        sub=user.sub,
+        role=user.role,
+        email=user.email,
+        first_name=user.first_name,
+        last_name=user.last_name,
+        username=user.username,
+        clerk_auth_enabled=True,
+    )
+
+
+@router.post(
+    "/clerk/verify",
+    response_model=ClerkVerifyResponse,
+    summary="Verify a Clerk JWT token",
+    tags=["Clerk Authentication"],
+)
+async def verify_clerk_token_endpoint(
+    request: ClerkVerifyRequest,
+) -> ClerkVerifyResponse:
+    """
+    Verify a Clerk JWT token and return user information.
+
+    This endpoint accepts a Clerk JWT token in the request body and
+    returns whether it's valid along with the decoded user information.
+
+    Request body:
+    ```json
+    {"token": "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..."}
+    ```
+    """
+    if not CLERK_AUTH_ENABLED:
+        return ClerkVerifyResponse(
+            valid=False,
+            error="Clerk authentication is not enabled (CLERK_SECRET_KEY not set)",
+        )
+
+    try:
+        user = verify_clerk_token(request.token)
+        return ClerkVerifyResponse(
+            valid=True,
+            user=ClerkUserInfo(
+                sub=user.sub,
+                role=user.role,
+                email=user.email,
+                first_name=user.first_name,
+                last_name=user.last_name,
+                username=user.username,
+                clerk_auth_enabled=True,
+            ),
+        )
+    except HTTPException as e:
+        return ClerkVerifyResponse(
+            valid=False,
+            error=str(e.detail),
+        )
+    except Exception as e:
+        return ClerkVerifyResponse(
+            valid=False,
+            error=f"Token verification failed: {str(e)}",
+        )
+
+
+@router.get(
+    "/clerk/config",
+    summary="Get Clerk authentication configuration",
+    tags=["Clerk Authentication"],
+)
+async def clerk_config():
+    """
+    Returns Clerk authentication configuration status.
+
+    Useful for client-side configuration and debugging.
+    """
+    publishable_key = CLERK_PUBLISHABLE_KEY if CLERK_AUTH_ENABLED else None
+
+    return {
+        "clerk_auth_enabled": CLERK_AUTH_ENABLED,
+        "publishable_key": publishable_key[:10] + "..." if publishable_key else None,
+        "jwt_algorithm": "RS256",
+        "jwks_endpoint": "https://jwks.clerk.accounts.dev/.well-known/jwks.json",
+    }
