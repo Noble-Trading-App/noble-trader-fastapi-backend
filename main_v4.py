@@ -23,23 +23,33 @@ Environment variables
   IB_HOST, IB_PORT, IB_CLIENT_ID                     — Interactive Brokers
 """
 
-from contextlib import asynccontextmanager
 import logging
+from contextlib import asynccontextmanager
+
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-# v2.x routers
-from regime_platform.routers import regime, sizing, risk, pipeline
-from regime_platform.routers import stream_rest, stream_ws
-from regime_platform.routers import simulate, portfolio, auth_router
-
-# v3.0 routers
-from regime_platform.routers import gpu, feeds, multi_asset
-
-from regime_platform.services.redis_persistence import persistence
 from regime_platform.core.gpu_engine import gpu_capabilities
+
+# v2.x routers
+# v3.0 routers
+from regime_platform.routers import (
+    auth_router,
+    feeds,
+    gpu,
+    multi_asset,
+    pipeline,
+    portfolio,
+    regime,
+    risk,
+    simulate,
+    sizing,
+    stream_rest,
+    stream_ws,
+)
+from regime_platform.services.redis_persistence import persistence
 
 log = logging.getLogger("regime.app")
 
@@ -53,12 +63,14 @@ async def lifespan(app: FastAPI):
         symbols = await persistence.list_persisted_symbols()
         log.info(f"Redis: restoring {len(symbols)} symbol(s)")
         from regime_platform.services.registry import registry
+
         for symbol in symbols:
-            meta    = await persistence.load_meta(symbol)
+            meta = await persistence.load_meta(symbol)
             session = await registry.get_or_create(symbol=symbol, **meta)
-            n       = await persistence.restore(session)
+            n = await persistence.restore(session)
             if n >= 81:
                 import asyncio
+
                 await asyncio.get_event_loop().run_in_executor(None, session._refit)
                 log.info(f"  ✓ {symbol}: restored {n} bars")
 
@@ -66,6 +78,7 @@ async def lifespan(app: FastAPI):
 
     await persistence.close()
     from regime_platform.routers.feeds import _manager
+
     if _manager:
         await _manager.stop()
     log.info("Shutdown complete")
@@ -140,8 +153,17 @@ POST /optimise/full
     )
 
     # v2.x routers
-    for r in [regime, sizing, risk, pipeline, stream_rest, stream_ws,
-              simulate, portfolio, auth_router]:
+    for r in [
+        regime,
+        sizing,
+        risk,
+        pipeline,
+        stream_rest,
+        stream_ws,
+        simulate,
+        portfolio,
+        auth_router,
+    ]:
         app.include_router(r.router)
 
     # v3.0 routers
@@ -152,25 +174,28 @@ POST /optimise/full
     @app.get("/", include_in_schema=False)
     async def root():
         caps = gpu_capabilities()
-        return JSONResponse({
-            "service": "Dynamic Regime Risk Management Platform",
-            "version": "3.0.0",
-            "docs":    "/docs",
-            "gpu":     caps,
-        })
+        return JSONResponse(
+            {
+                "service": "Dynamic Regime Risk Management Platform",
+                "version": "3.0.0",
+                "docs": "/docs",
+                "gpu": caps,
+            }
+        )
 
     @app.get("/health", tags=["Health"])
     async def health():
         from regime_platform.services.registry import registry
+
         symbols = await registry.list_symbols()
-        caps    = gpu_capabilities()
+        caps = gpu_capabilities()
         return {
-            "status":      "ok",
-            "version":     "3.0.0",
-            "sessions":    len(symbols),
-            "redis":       persistence.enabled,
+            "status": "ok",
+            "version": "3.0.0",
+            "sessions": len(symbols),
+            "redis": persistence.enabled,
             "gpu_backend": caps["hmm_backend"],
-            "device":      caps["active_device"],
+            "device": caps["active_device"],
         }
 
     return app
@@ -179,4 +204,4 @@ POST /optimise/full
 app = create_app()
 
 if __name__ == "__main__":
-    uvicorn.run("main_v4:app", host="0.0.0.0", port=8000, reload=True, log_level="info")
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True, log_level="info")

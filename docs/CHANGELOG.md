@@ -1,3 +1,54 @@
+## [3.1.1] — 2026-Q2 (Testing & Tooling Release)
+
+### Added — Testing Tools & Developer Experience
+
+#### `curl_test.sh` — NEW FILE
+Bash script: 6 assertions against a live server.
+1. GET /health → 200
+2. POST /analyse/full with 200 synthetic SPY bars → 200
+3. All 12 response fields present (regime_label, confidence, risk_multiplier,
+   recommended_f, sharpe_ratio, var_95, cvar_95, max_drawdown, suggested_stop,
+   suggested_tp, etc.)
+4. 6-bar payload → 422 (validation rejection)
+5. Negative price → 422 (validation rejection)
+Supports custom base URL: `./curl_test.sh http://my-host:8000`
+Coloured output with jq if installed, falls back to python3 -m json.tool.
+
+#### `stream_spy_ticks.py` — NEW FILE (423 lines)
+Python script: seeds SPY with 150 bars, pushes 50 live ticks via POST /stream/tick,
+prints a formatted TickResponse for each tick.
+- Pure stdlib + numpy — no third-party HTTP client needed
+- Formatted output: regime label (colour-coded), f*, mult, confidence, VaR95,
+  stop/TP, prob bars for vol and trend posteriors
+- Regime-change banner printed mid-stream
+- Full summary table at end: regime sequence, f* range, VaR range, RTT latency
+- CLI options: --url, --symbol, --seed-bars, --ticks, --interval, --regime,
+  --mu, --sigma, --no-color, --json
+- --json flag pipes raw TickResponse JSON for jq processing
+- Buffering stub handled gracefully (warming-up message)
+
+#### `sse_alert_monitor.html` — NEW FILE (368 lines)
+Browser EventSource monitor for GET /sse/alerts.
+- EventSource auto-reconnect with error distinction (never-connected vs dropped)
+- Every raw message logged via console.log; alerts routed by severity:
+  critical → console.error · warning → console.warn · info → console.info
+- Alert entry: coloured regime labels, mult/f* extracted from message string,
+  critical badge pulses 3× via CSS animation
+- Stats bar: live counts per severity, heartbeat count, uptime timer, last alert
+- Log capped at 300 entries; all server strings pass through escHtml() (XSS guard)
+- Enter key connects/disconnects; works with any CORS-enabled SSE endpoint
+
+#### `payload_spy_200bars.json` — NEW FILE
+Ready-made 200-bar SPY JSON payload for curl / Postman / Insomnia testing.
+4-segment multi-regime series (low-vol bull → med bull → med bear → high-vol bear).
+
+### Changed
+- `README.md` — full rewrite: complete project structure tree, all 21 endpoints,
+  Masaniello formula table, 24-feature index table, testing sequence, auth/Redis/GPU
+  quickstart commands
+
+---
+
 ## [3.1.0] — 2026-Q2
 
 ### Changed — Dynamic Masaniello + Kelly Unified Sizing Engine

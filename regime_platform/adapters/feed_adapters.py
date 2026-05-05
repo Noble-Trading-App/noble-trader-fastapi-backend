@@ -390,7 +390,7 @@ class FeedManager:
 
     async def start(self) -> None:
         """Start all adapters. Blocks until stop() is called."""
-        from .registry import registry
+        from ..services.registry import registry
 
         self._running = True
         log.info(f"FeedManager starting {len(self._adapters)} adapter(s)")
