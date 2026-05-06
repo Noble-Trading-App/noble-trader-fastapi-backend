@@ -153,7 +153,7 @@ def _get_clerk_jwks() -> dict:
 
     # For now, use Clerk's default JWKS endpoint
     # In production, you might want to use your specific Clerk instance URL
-    jwks_url = "https://jwks.clerk.accounts.dev/.well-known/jwks.json"
+    jwks_url = "https://large-shark-21.clerk.accounts.dev/.well-known/jwks.json"
 
     try:
         response = httpx.get(jwks_url, timeout=5.0)
@@ -618,5 +618,5 @@ async def verify_clerk_webhook(
 
     # Parse and return payload
     import json
-    return json.loads(body.decode("utf-8"))
 
+    return json.loads(body.decode("utf-8"))

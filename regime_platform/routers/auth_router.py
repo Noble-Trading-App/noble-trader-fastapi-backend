@@ -288,5 +288,5 @@ async def clerk_config():
         "clerk_auth_enabled": CLERK_AUTH_ENABLED,
         "publishable_key": publishable_key[:10] + "..." if publishable_key else None,
         "jwt_algorithm": "RS256",
-        "jwks_endpoint": "https://jwks.clerk.accounts.dev/.well-known/jwks.json",
+        "jwks_endpoint": "https://large-shark-21.clerk.accounts.dev/.well-known/jwks.json",
     }
