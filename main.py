@@ -19,7 +19,15 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from regime_platform.routers import pipeline, portfolio, regime, risk, simulate, sizing
+from regime_platform.routers import (
+    auth_router,
+    pipeline,
+    portfolio,
+    regime,
+    risk,
+    simulate,
+    sizing,
+)
 
 # ─── App Factory ──────────────────────────────────────────────────────────────
 
@@ -78,6 +86,7 @@ Or use individual endpoints for targeted analysis.
     )
 
     # Routers
+    app.include_router(auth_router.router)
     app.include_router(regime.router)
     app.include_router(sizing.router)
     app.include_router(risk.router)
