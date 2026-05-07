@@ -1,13 +1,12 @@
 """Regime transition simulation endpoints."""
 
-from typing import Optional, Union
+from typing import Optional
 
 import numpy as np
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from ..auth.clerk_auth import ClerkTokenData, get_current_clerk_user
-from ..auth.jwt_auth import TokenData, get_current_user
+from ..auth.jwt_auth import TokenData, get_authed_user
 from ..core.simulator import RegimeSimulator, SimulationResult
 
 router = APIRouter(prefix="/simulate", tags=["Simulation"])
@@ -63,7 +62,7 @@ class SimulateResponse(BaseModel):
 async def simulate_symbol(
     symbol: str,
     req: SimulateRequest,
-    user: Union[TokenData, ClerkTokenData] = Depends(get_current_user),
+    user: TokenData = Depends(get_authed_user),
 ):
     """
     Fits a 4-state HMM on the supplied price series, then simulates

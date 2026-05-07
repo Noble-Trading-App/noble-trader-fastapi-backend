@@ -19,7 +19,7 @@ from ..core.correlation_regime import (
     CorrelationSnapshot, AssetRegime,
 )
 from ..core.portfolio_optimiser import DrawdownOptimiser, OptimiserConfig, OptimisationResult
-from ..auth.jwt_auth import get_current_user, TokenData
+from ..auth.jwt_auth import get_authed_user, TokenData
 
 router = APIRouter(tags=["Multi-Asset"])
 
@@ -134,7 +134,7 @@ def _snap_to_dict(ar: AssetRegime) -> dict:
 )
 async def detect_correlation_regime(
     req: CorrDetectRequest,
-    user: TokenData = Depends(get_current_user),
+    user: TokenData = Depends(get_authed_user),
 ):
     """
     Fits a 4-state Gaussian HMM on rolling correlation features across all assets.
@@ -183,7 +183,7 @@ async def detect_correlation_regime(
 )
 async def optimise_portfolio(
     req: OptimiseRequest,
-    user: TokenData = Depends(get_current_user),
+    user: TokenData = Depends(get_authed_user),
 ):
     """
     Solves a regime-adjusted maximum Sharpe portfolio subject to a drawdown constraint.
@@ -238,7 +238,7 @@ async def optimise_portfolio(
 )
 async def full_optimise(
     req: FullOptimiseRequest,
-    user: TokenData = Depends(get_current_user),
+    user: TokenData = Depends(get_authed_user),
 ):
     """
     Runs the complete multi-asset pipeline in one request:

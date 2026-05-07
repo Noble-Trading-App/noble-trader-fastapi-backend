@@ -34,23 +34,23 @@ Usage
 
 from __future__ import annotations
 
-import logging
 import os
+import logging
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import Depends, HTTPException, Query, WebSocket, status
-from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, APIKeyHeader
 
 log = logging.getLogger("regime.auth")
 
 # ── Configuration ─────────────────────────────────────────────────────────────
 
-JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "")
-JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
+JWT_SECRET_KEY  = os.getenv("JWT_SECRET_KEY", "")
+JWT_ALGORITHM   = os.getenv("JWT_ALGORITHM", "HS256")
 JWT_EXPIRE_MINS = int(os.getenv("JWT_EXPIRE_MINS", "60"))
-API_KEYS = set(filter(None, os.getenv("API_KEYS", "").split(",")))
-AUTH_ENABLED = os.getenv("AUTH_ENABLED", "true").lower() != "false"
+API_KEYS        = set(filter(None, os.getenv("API_KEYS", "").split(",")))
+AUTH_ENABLED    = os.getenv("AUTH_ENABLED", "true").lower() != "false"
 
 if AUTH_ENABLED and not JWT_SECRET_KEY:
     log.warning(
@@ -61,12 +61,11 @@ if AUTH_ENABLED and not JWT_SECRET_KEY:
 
 # ── Token data model ──────────────────────────────────────────────────────────
 
-
 class TokenData:
     def __init__(self, sub: str, role: str = "viewer", exp: Optional[datetime] = None):
-        self.sub = sub  # subject / user ID
-        self.role = role  # "admin" | "trader" | "viewer"
-        self.exp = exp
+        self.sub  = sub    # subject / user ID
+        self.role = role   # "admin" | "trader" | "viewer"
+        self.exp  = exp
 
     @property
     def is_admin(self) -> bool:
@@ -78,7 +77,6 @@ class TokenData:
 
 
 # ── Token creation ────────────────────────────────────────────────────────────
-
 
 def create_access_token(
     data: dict,
@@ -99,15 +97,13 @@ def create_access_token(
     try:
         from jose import jwt
     except ImportError:
-        raise RuntimeError(
-            "python-jose not installed: pip install python-jose[cryptography]"
-        )
+        raise RuntimeError("python-jose not installed: pip install python-jose[cryptography]")
 
     if not JWT_SECRET_KEY:
         raise RuntimeError("JWT_SECRET_KEY is not configured")
 
     payload = data.copy()
-    expire = datetime.now(timezone.utc) + (
+    expire  = datetime.now(timezone.utc) + (
         expires_delta or timedelta(minutes=JWT_EXPIRE_MINS)
     )
     payload.update({"exp": expire, "iat": datetime.now(timezone.utc)})
@@ -123,7 +119,7 @@ def decode_token(token: str) -> TokenData:
     HTTPException 401 if token is invalid, expired, or secret is missing.
     """
     try:
-        from jose import JWTError, jwt
+        from jose import jwt, JWTError
     except ImportError:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -138,9 +134,9 @@ def decode_token(token: str) -> TokenData:
 
     try:
         payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
-        sub = payload.get("sub")
+        sub  = payload.get("sub")
         role = payload.get("role", "viewer")
-        exp = payload.get("exp")
+        exp  = payload.get("exp")
         if sub is None:
             raise HTTPException(status_code=401, detail="Token missing 'sub' claim")
         return TokenData(sub=str(sub), role=str(role))
@@ -154,7 +150,7 @@ def decode_token(token: str) -> TokenData:
 
 # ── FastAPI security schemes ──────────────────────────────────────────────────
 
-_bearer = HTTPBearer(auto_error=False)
+_bearer     = HTTPBearer(auto_error=False)
 _api_key_hdr = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
@@ -216,7 +212,6 @@ async def require_admin(user: TokenData = Depends(get_current_user)) -> TokenDat
 
 # ── Unified auth (Clerk JWT → old JWT → API key) ─────────────────────────────
 
-
 async def get_authed_user(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(_bearer),
     api_key: Optional[str] = Depends(_api_key_hdr),
@@ -254,8 +249,7 @@ async def get_authed_user(
 
     # Try Clerk JWT verification first (if Clerk is enabled)
     try:
-        from ..auth.clerk_auth import CLERK_AUTH_ENABLED, verify_clerk_token
-
+        from ..auth.clerk_auth import verify_clerk_token, CLERK_AUTH_ENABLED
         if CLERK_AUTH_ENABLED:
             try:
                 clerk_user = verify_clerk_token(token)
@@ -285,7 +279,6 @@ async def get_authed_user(
 
 
 # ── WebSocket authentication ──────────────────────────────────────────────────
-
 
 async def ws_auth(
     websocket: WebSocket,
@@ -327,16 +320,13 @@ async def ws_auth(
         try:
             # Try Clerk verification first
             try:
-                from ..auth.clerk_auth import CLERK_AUTH_ENABLED, verify_clerk_token
-
+                from ..auth.clerk_auth import verify_clerk_token, CLERK_AUTH_ENABLED
                 if CLERK_AUTH_ENABLED:
                     try:
                         clerk_user = verify_clerk_token(token)
                         return TokenData(
                             sub=clerk_user.sub,
-                            role=clerk_user.role
-                            if clerk_user.role
-                            else "authenticated",
+                            role=clerk_user.role if clerk_user.role else "authenticated",
                         )
                     except HTTPException:
                         if not JWT_SECRET_KEY:
@@ -360,7 +350,6 @@ async def ws_auth(
 
 # ── Login endpoint helper ─────────────────────────────────────────────────────
 
-
 def make_login_response(sub: str, role: str = "viewer") -> dict:
     """
     Utility for a /auth/token endpoint to return a standard token response.
@@ -374,8 +363,8 @@ def make_login_response(sub: str, role: str = "viewer") -> dict:
     token = create_access_token({"sub": sub, "role": role})
     return {
         "access_token": token,
-        "token_type": "bearer",
-        "expires_in": JWT_EXPIRE_MINS * 60,
-        "sub": sub,
-        "role": role,
+        "token_type":   "bearer",
+        "expires_in":   JWT_EXPIRE_MINS * 60,
+        "sub":          sub,
+        "role":         role,
     }

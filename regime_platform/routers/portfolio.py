@@ -1,13 +1,12 @@
 """Portfolio aggregation endpoints."""
 
 from dataclasses import asdict
-from typing import Optional, Union
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from ..auth.clerk_auth import ClerkTokenData, get_current_clerk_user
-from ..auth.jwt_auth import TokenData, get_current_user
+from ..auth.jwt_auth import TokenData, get_authed_user
 from ..services.portfolio_service import SymbolSummary, portfolio_service
 
 router = APIRouter(prefix="/portfolio", tags=["Portfolio"])
@@ -59,7 +58,7 @@ async def get_portfolio(
     kelly_fraction: float = Query(default=0.5, ge=0.1, le=1.0),
     target_vol: float = Query(default=0.15, gt=0, le=1.0),
     base_risk_limit: float = Query(default=0.02, gt=0, le=0.5),
-    user: Union[TokenData, ClerkTokenData] = Depends(get_current_user),
+    user: TokenData = Depends(get_authed_user),
 ):
     """
     Returns a portfolio-level view aggregating all (or specified) active
@@ -128,7 +127,7 @@ async def get_portfolio(
     summary="List symbols with active sessions",
 )
 async def list_portfolio_symbols(
-    user: Union[TokenData, ClerkTokenData] = Depends(get_current_user),
+    user: TokenData = Depends(get_authed_user),
 ):
     """Returns all symbols currently registered in the session registry."""
     from ..services.registry import registry
