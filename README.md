@@ -33,7 +33,8 @@ regime_risk_platform/
 │   ├── adapters/
 │   │   └── feed_adapters.py          Alpaca / Binance / IB live OHLCV adapters
 │   ├── auth/
-│   │   └── jwt_auth.py               JWT + API-key auth, role-based access
+│   │   ├── jwt_auth.py               JWT + API-key auth, role-based access
+│   │   └── clerk_auth.py             Clerk JWT verification, JWKS, webhooks
 │   ├── models/
 │   │   ├── schemas.py                Pydantic v2 batch I/O models
 │   │   └── stream_schemas.py         Pydantic v2 streaming models
@@ -46,7 +47,7 @@ regime_risk_platform/
 │   │   ├── stream_.py              WS /ws/{symbol} | GET /sse/{symbol|alerts}
 │   │   ├── simulate.py               POST /simulate/{symbol}
 │   │   ├── portfolio.py              GET /portfolio
-│   │   ├── auth_router.py            POST /auth/token | GET /auth/me
+│   │   ├── auth_router.py            POST /auth/token | GET /auth/me | Clerk endpoints
 │   │   ├── gpu.py                    GET /gpu/capabilities | POST /gpu/benchmark
 │   │   ├── feeds.py                  POST /feeds/start | /stop | GET /feeds/status
 │   │   └── multi_asset.py            POST /correlation/detect | /optimise | /optimise/full
@@ -118,6 +119,9 @@ open docs/index.html
 | **python-jose** | ≥3.3 | JWT signing/verification |
 | **redis** | ≥5.0 | Optional price buffer persistence |
 | **pomegranate** | ≥1.0 *(optional)* | GPU-accelerated HMM (PyTorch) |
+| **clerk-backend-api** | ≥0.1.0 | Clerk JWT authentication |
+| **httpx** | ≥0.28.1 | Clerk JWKS fetching |
+| **PyJWT** | ≥2.9.0,<3.0.0 | JWT token handling |
 | **alpaca-py** | *(optional)* | Alpaca live feed adapter |
 | **websockets** | *(optional)* | Binance live feed adapter |
 | **ib_async** | *(optional)* | Interactive Brokers adapter |
@@ -167,6 +171,9 @@ open docs/index.html
 | `GET` | `/feeds/status` | Adapter health + bar counts |
 | `POST` | `/auth/token` | Issue JWT access token |
 | `GET` | `/auth/me` | Current user info |
+| `GET` | `/auth/clerk/config` | Clerk auth configuration |
+| `GET` | `/auth/clerk/me` | Clerk user info from JWT |
+| `POST` | `/auth/clerk/verify` | Verify Clerk JWT token |
 | `GET` | `/health` | Service health check |
 
 ---
@@ -335,6 +342,8 @@ POST /optimise/full
 
 ## Authentication
 
+### JWT Authentication (Built-in)
+
 ```bash
 # Configure
 export JWT_SECRET_KEY="your-signing-secret"
@@ -354,6 +363,122 @@ ws://localhost:8000/ws/SPY?token=<jwt>
 ```
 
 Roles: `admin` (full) · `trader` (read + write) · `viewer` (read-only)
+
+### Clerk Authentication (New)
+
+Clerk JWT authentication is now fully integrated. Configure Clerk keys in `.env.local`:
+
+```bash
+# .env.local
+CLERK_PUBLISHABLE_KEY=pk_test_your_publishable_key
+CLERK_SECRET_KEY=sk_test_your_secret_key
+```
+
+#### Clerk Endpoints
+
+```bash
+# Get Clerk configuration
+curl https://your-domain.com/auth/clerk/config
+
+# Verify a Clerk JWT token
+curl -X POST https://your-domain.com/auth/clerk/verify \
+  -H "Content-Type: application/json" \
+  -d '{"token": "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..."}'
+
+# Get current Clerk user info (requires valid Clerk JWT)
+curl -H "Authorization: Bearer <clerk_jwt>" \
+  https://your-domain.com/auth/clerk/me
+```
+
+#### Protecting Endpoints with Clerk
+
+```python
+from regime_platform.auth import get_current_clerk_user, require_clerk_admin
+
+@router.get("/protected")
+async def protected_route(user = Depends(get_current_clerk_user)):
+    return {"user_id": user.sub, "email": user.email}
+
+@router.post("/admin-only")
+async def admin_only(user = Depends(require_clerk_admin)):
+    return {"message": "Admin access granted"}
+```
+
+#### Clerk Features
+
+- ✅ **JWT Verification**: Verify Clerk-issued JWT tokens using Clerk's JWKS
+- ✅ **JWKS Fetching**: Automatic key rotation support
+- ✅ **Role-based Access**: Admin/trader/viewer roles from token claims
+- ✅ **Webhook Verification**: Secure Clerk webhook signature validation
+- ✅ **FastAPI Integration**: Ready-to-use dependency injectors
+- ✅ **Configuration Endpoints**: `/auth/clerk/config` for client setup
+
+#### Clerk Token Data
+
+Verified Clerk tokens provide rich user data:
+- `sub`: Clerk user ID
+- `email`: User email address
+- `first_name`, `last_name`: User's name
+- `username`: User's username
+- `role`: User role (admin/trader/viewer)
+- Full token claims available via `user.claims`
+
+#### Webhook Security
+
+```python
+from regime_platform.auth import verify_clerk_webhook
+
+@router.post("/webhooks/clerk")
+async def clerk_webhook(request: Request):
+    payload = await verify_clerk_webhook(request)
+    # Process verified webhook payload
+    return {"status": "processed"}
+```
+
+Clerk authentication works alongside the existing JWT system, allowing flexible migration paths.
+
+### Dual Authentication Support
+
+Both `/simulate` and `/portfolio` endpoints now support both authentication systems:
+
+```python
+# Endpoints accept both JWT and Clerk users
+from regime_platform.auth import TokenData, ClerkTokenData
+from typing import Union
+
+@router.post("/simulate/{symbol}")
+async def simulate_symbol(
+    symbol: str,
+    req: SimulateRequest,
+    user: Union[TokenData, ClerkTokenData] = Depends(get_current_user),
+):
+    # Works with both JWT and Clerk authentication
+    pass
+```
+
+**Usage examples:**
+
+```bash
+# Using JWT token
+curl -H "Authorization: Bearer <jwt_token>" \
+  https://your-domain.com/simulate/SPY
+
+# Using Clerk JWT token
+curl -H "Authorization: Bearer <clerk_jwt_token>" \
+  https://your-domain.com/simulate/SPY
+
+# Using API key (service-to-service)
+curl -H "X-API-Key: your-api-key" \
+  https://your-domain.com/portfolio
+```
+
+All endpoints automatically support:
+- ✅ **JWT tokens** (built-in system)
+- ✅ **Clerk JWT tokens** (new Clerk integration)
+- ✅ **API keys** (service-to-service)
+- ✅ **Development mode** (AUTH_ENABLED=false)
+
+This provides maximum flexibility for different authentication scenarios while maintaining backward compatibility.
 
 ---
 

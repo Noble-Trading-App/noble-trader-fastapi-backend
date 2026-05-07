@@ -1,47 +1,49 @@
 """Portfolio aggregation endpoints."""
 
-from fastapi import APIRouter, HTTPException, Query, Depends
-from pydantic import BaseModel, Field
-from typing import Optional
 from dataclasses import asdict
+from typing import Optional, Union
 
-from ..services.portfolio_service import portfolio_service, SymbolSummary
-from ..auth.jwt_auth import get_current_user, TokenData
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel, Field
+
+from ..auth.clerk_auth import ClerkTokenData, get_current_clerk_user
+from ..auth.jwt_auth import TokenData, get_current_user
+from ..services.portfolio_service import SymbolSummary, portfolio_service
 
 router = APIRouter(prefix="/portfolio", tags=["Portfolio"])
 
 
 class SymbolSummaryResponse(BaseModel):
-    symbol:           str
-    regime_label:     str
-    vol_state:        str
-    trend_state:      str
-    confidence:       float
-    risk_multiplier:  float
-    recommended_f:    float
-    var_95:           float
-    cvar_95:          float
-    sharpe_ratio:     float
-    last_price:       Optional[float]
-    n_bars:           int
-    ready:            bool
+    symbol: str
+    regime_label: str
+    vol_state: str
+    trend_state: str
+    confidence: float
+    risk_multiplier: float
+    recommended_f: float
+    var_95: float
+    cvar_95: float
+    sharpe_ratio: float
+    last_price: Optional[float]
+    n_bars: int
+    ready: bool
 
 
 class PortfolioResponse(BaseModel):
-    n_symbols:              int
-    symbols:                list[SymbolSummaryResponse]
-    regime_counts:          dict[str, int]
-    dominant_regime:        str
-    regime_consensus:       float
-    avg_risk_multiplier:    float
-    avg_recommended_f:      float
-    avg_sharpe:             float
-    portfolio_var95:        float
-    portfolio_cvar95:       float
-    high_risk_count:        int
-    concentration_flag:     bool
+    n_symbols: int
+    symbols: list[SymbolSummaryResponse]
+    regime_counts: dict[str, int]
+    dominant_regime: str
+    regime_consensus: float
+    avg_risk_multiplier: float
+    avg_recommended_f: float
+    avg_sharpe: float
+    portfolio_var95: float
+    portfolio_cvar95: float
+    high_risk_count: int
+    concentration_flag: bool
     regime_divergence_flag: bool
-    active_alerts:          list[str]
+    active_alerts: list[str]
 
 
 @router.get(
@@ -50,11 +52,14 @@ class PortfolioResponse(BaseModel):
     summary="Aggregated regime + risk summary across all active sessions",
 )
 async def get_portfolio(
-    symbols:         Optional[str]  = Query(default=None, description="Comma-separated symbols. Omit for all active sessions."),
-    kelly_fraction:  float          = Query(default=0.5,  ge=0.1, le=1.0),
-    target_vol:      float          = Query(default=0.15, gt=0,   le=1.0),
-    base_risk_limit: float          = Query(default=0.02, gt=0,   le=0.5),
-    user: TokenData = Depends(get_current_user),
+    symbols: Optional[str] = Query(
+        default=None,
+        description="Comma-separated symbols. Omit for all active sessions.",
+    ),
+    kelly_fraction: float = Query(default=0.5, ge=0.1, le=1.0),
+    target_vol: float = Query(default=0.15, gt=0, le=1.0),
+    base_risk_limit: float = Query(default=0.02, gt=0, le=0.5),
+    user: Union[TokenData, ClerkTokenData] = Depends(get_current_user),
 ):
     """
     Returns a portfolio-level view aggregating all (or specified) active
@@ -74,7 +79,7 @@ async def get_portfolio(
     """
     try:
         sym_list = [s.strip() for s in symbols.split(",")] if symbols else None
-        result   = await portfolio_service.summarise(
+        result = await portfolio_service.summarise(
             symbols=sym_list,
             kelly_fraction=kelly_fraction,
             target_vol=target_vol,
@@ -122,7 +127,10 @@ async def get_portfolio(
     "/symbols",
     summary="List symbols with active sessions",
 )
-async def list_portfolio_symbols(user: TokenData = Depends(get_current_user)):
+async def list_portfolio_symbols(
+    user: Union[TokenData, ClerkTokenData] = Depends(get_current_user),
+):
     """Returns all symbols currently registered in the session registry."""
     from ..services.registry import registry
+
     return {"symbols": await registry.list_symbols()}

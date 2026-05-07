@@ -1,48 +1,56 @@
 """Regime transition simulation endpoints."""
 
-from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, Union
+
 import numpy as np
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field
 
+from ..auth.clerk_auth import ClerkTokenData, get_current_clerk_user
+from ..auth.jwt_auth import TokenData, get_current_user
 from ..core.simulator import RegimeSimulator, SimulationResult
-from ..auth.jwt_auth import get_current_user, TokenData
 
-router    = APIRouter(prefix="/simulate", tags=["Simulation"])
+router = APIRouter(prefix="/simulate", tags=["Simulation"])
 simulator = RegimeSimulator()
 
 
 class SimulateRequest(BaseModel):
-    symbol:        str = Field(default="UNKNOWN")
-    prices:        list[float] = Field(..., min_length=81)
-    horizon:       int   = Field(default=20,  ge=1,   le=252,   description="Forward steps to simulate")
-    n_paths:       int   = Field(default=500, ge=50,  le=5000,  description="Monte Carlo paths")
-    seed:          Optional[int] = Field(default=42,            description="Random seed for reproducibility")
-    current_price: Optional[float] = Field(default=None, gt=0,  description="Override starting price")
+    symbol: str = Field(default="UNKNOWN")
+    prices: list[float] = Field(..., min_length=81)
+    horizon: int = Field(
+        default=20, ge=1, le=252, description="Forward steps to simulate"
+    )
+    n_paths: int = Field(default=500, ge=50, le=5000, description="Monte Carlo paths")
+    seed: Optional[int] = Field(
+        default=42, description="Random seed for reproducibility"
+    )
+    current_price: Optional[float] = Field(
+        default=None, gt=0, description="Override starting price"
+    )
 
 
 class SimulateResponse(BaseModel):
-    symbol:               str
-    horizon:              int
-    n_paths:              int
-    current_regime:       str
-    current_price:        float
+    symbol: str
+    horizon: int
+    n_paths: int
+    current_regime: str
+    current_price: float
     # Price fan (each list has `horizon` values)
-    price_p5:             list[float]
-    price_p25:            list[float]
-    price_median:         list[float]
-    price_p75:            list[float]
-    price_p95:            list[float]
+    price_p5: list[float]
+    price_p25: list[float]
+    price_median: list[float]
+    price_p75: list[float]
+    price_p95: list[float]
     # Expected regime risk multiplier per step
-    expected_risk_mult:   list[float]
+    expected_risk_mult: list[float]
     # Terminal statistics
-    return_mean:          float
-    return_std:           float
-    return_var95:         float
-    return_cvar95:        float
+    return_mean: float
+    return_std: float
+    return_var95: float
+    return_cvar95: float
     terminal_regime_mode: str
-    pct_paths_positive:   float
-    max_drawdown_mean:    float
+    pct_paths_positive: float
+    max_drawdown_mean: float
     # Per-step dominant regime (most likely at each step)
     step_dominant_regime: list[str]
 
@@ -55,7 +63,7 @@ class SimulateResponse(BaseModel):
 async def simulate_symbol(
     symbol: str,
     req: SimulateRequest,
-    user: TokenData = Depends(get_current_user),
+    user: Union[TokenData, ClerkTokenData] = Depends(get_current_user),
 ):
     """
     Fits a 4-state HMM on the supplied price series, then simulates
@@ -82,10 +90,7 @@ async def simulate_symbol(
         )
 
         # Extract per-step dominant regime from occupancy
-        step_dominant = [
-            max(occ, key=occ.get)
-            for occ in result.regime_occupancy
-        ]
+        step_dominant = [max(occ, key=occ.get) for occ in result.regime_occupancy]
 
         return SimulateResponse(
             symbol=result.symbol,
